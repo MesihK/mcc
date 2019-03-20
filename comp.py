@@ -16,8 +16,8 @@ t_NAME = r'[a-zA-Z_][a-zA-Z0-9_]*'
 
 
 def t_NUMBER(t):
-    r'\d+(\.\d+)?'
-    t.value = float(t.value)
+    r'\d+'
+    t.value = int(t.value)
     return t
 
 t_ignore = " \t"
