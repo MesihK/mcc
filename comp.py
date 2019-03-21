@@ -148,7 +148,6 @@ def p_statement_def(p):
     '''statement : INT ID "=" expression ";"
                  | INT ID ";"'''
     print('variable definition of:', p[2], len(p))
-    global stack_pointer
     variables[p[2]] = "0"
     if len(p) >= 6:
         if is_reg(p[4]):
@@ -165,12 +164,12 @@ def p_statement_assign(p):
     print('variable assign:', p[1])
     if p[1] not in variables : raise Exception(p[1]+' is not defined')
     if is_reg(p[3]):
-        print('sw', '$'+p[3], ',', p[1], file=asm)
+        print('sw', '$'+p[3]+',', p[1], file=asm)
         dealloc_reg(p[3])
     else:
         r1 = alloc_reg()
-        print('li', '$'+r1, ',', p[3], file=asm)
-        print('sw', '$'+r1, ',', p[1], file=asm)
+        print('li', '$'+r1+',', p[3], file=asm)
+        print('sw', '$'+r1+',', p[1], file=asm)
         dealloc_reg(r1)
 
 def p_expression_list(p):
@@ -194,21 +193,21 @@ def p_expression_binop(p):
     if is_reg(p[1]): r2 = p[1]
     else :
         r2 = alloc_reg()
-        print('li', '$'+r2, ',',  p[1], file=asm)
+        print('li', '$'+r2+',',  p[1], file=asm)
 
     if is_reg(p[3]): r3 = p[3]
     else :
         r3 = alloc_reg()
-        print('li', '$'+r3, ',',  p[3], file=asm)
+        print('li', '$'+r3+',',  p[3], file=asm)
 
     if p[2] == '+':
-        print('add', '$'+r1, ',', '$'+r2, ',', '$'+r3, file=asm)
+        print('add', '$'+r1+',', '$'+r2+',', '$'+r3, file=asm)
     elif p[2] == '-':
-        print('sub', '$'+r1, ',', '$'+r2, ',', '$'+r3, file=asm)
+        print('sub', '$'+r1+',', '$'+r2+',', '$'+r3, file=asm)
     elif p[2] == '*':
-        print('mul', '$'+r1, ',', '$'+r2, ',', '$'+r3, file=asm)
+        print('mul', '$'+r1+',', '$'+r2+',', '$'+r3, file=asm)
     elif p[2] == '/':
-        print('div', '$'+r1, ',', '$'+r2, ',', '$'+r3, file=asm)
+        print('div', '$'+r1+',', '$'+r2+',', '$'+r3, file=asm)
 
     p[0] = r1
     dealloc_reg(r2)
@@ -242,7 +241,7 @@ def p_expression_name(p):
     "expression : ID"
     try:
         r1 = alloc_reg()
-        print('lw', '$'+r1, p[1], file=asm)
+        print('lw', '$'+r1+',', p[1], file=asm)
         p[0] = r1
     except LookupError:
         print("Undefined name '%s'" % p[1])
