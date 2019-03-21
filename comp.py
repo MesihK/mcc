@@ -130,19 +130,23 @@ def p_statement_arr_def(p):
     print('array definition', p[2], p[4], p[8])
 
 def p_statement_def(p):
-    'statement : INT ID "=" expression ";"'
-    print('variable definition of:', p[2])
+    '''statement : INT ID "=" expression ";"
+                 | INT ID ";"'''
+    print('variable definition of:', p[2], len(p))
     global stack_pointer
     stack_pointer = stack_pointer + 4
     s = stack_pointer
-    if is_reg(p[4]):
-        print('sw', '$'+p[4], ',', str(s)+'($sp)', file=asm)
-        dealloc_reg(p[4])
+    if len(p) < 6:
+        print('sw', '$zero,', str(s)+'($sp)', file=asm)
     else:
-        r1 = alloc_reg()
-        print('li', '$'+r1, ',', p[4], file=asm)
-        print('sw', '$'+r1, ',', str(s)+'($sp)', file=asm)
-        dealloc_reg(r1)
+        if is_reg(p[4]):
+            print('sw', '$'+p[4]+',', str(s)+'($sp)', file=asm)
+            dealloc_reg(p[4])
+        else:
+            r1 = alloc_reg()
+            print('li', '$'+r1+',', p[4], file=asm)
+            print('sw', '$'+r1+',', str(s)+'($sp)', file=asm)
+            dealloc_reg(r1)
     names[p[2]] = s
 
 def p_statement_assign(p):
