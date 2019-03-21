@@ -147,13 +147,13 @@ def p_statement_def(p):
             print('li', '$'+r1+',', p[4], file=asm)
             print('sw', '$'+r1+',', str(s)+'($sp)', file=asm)
             dealloc_reg(r1)
-    names[p[2]] = s
+    names[p[2]] = [s, 1]
 
 def p_statement_assign(p):
     'statement : ID "=" expression ";"'
     print('variable assign:', p[1])
     if p[1] not in names : raise Exception(p[1]+' is not defined')
-    s = names[p[1]]
+    s, l = names[p[1]]
     if is_reg(p[3]):
         print('sw', '$'+p[3], ',', str(s)+'($sp)', file=asm)
         dealloc_reg(p[3])
@@ -162,7 +162,6 @@ def p_statement_assign(p):
         print('li', '$'+r1, ',', p[3], file=asm)
         print('sw', '$'+r1, ',', str(s)+'($sp)', file=asm)
         dealloc_reg(r1)
-    names[p[1]] = s
 
 def p_expression_list(p):
     '''expression_list : expression ',' expression 
@@ -233,7 +232,7 @@ def p_expression_number(p):
 def p_expression_name(p):
     "expression : ID"
     try:
-        s = names[p[1]]
+        s, l = names[p[1]]
         r1 = alloc_reg()
         print('lw', '$'+r1, str(s)+'($sp)', file=asm)
         p[0] = r1
