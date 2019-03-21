@@ -4,8 +4,8 @@ sys.path.insert(0, "../..")
 if sys.version_info[0] >= 3:
     raw_input = input
 
-asm = open(sys.argv[1], "w+")
-stack_pointer = 0
+c = open(sys.argv[1], "r")
+asm = open(sys.argv[2], "w+")
 registers = {
     #'at':0, 'v0':0, 'v1':0,
     #'a0':0, 'a1':0, 'a2':0, 'a3':0,
@@ -288,17 +288,10 @@ def p_error(p):
 import ply.yacc as yacc
 yacc.yacc()
 
-while 1:
-    try:
-        s = raw_input('calc > ')
-        print('#'+s, file=asm)
-    except EOFError:
-        break
-    except KeyboardInterrupt:
-        break
-    if not s:
-        continue
-    yacc.parse(s)
+c_lines = c.readlines();
+for line in c_lines:
+    asm.write('#'+line)
+    yacc.parse(line)
 
 asm.seek(0,0); #goto begining
 data = asm.read()
