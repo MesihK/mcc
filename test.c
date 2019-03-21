@@ -4,7 +4,7 @@ int main(){
 	int b = a;
 
 	a = a*b;
-	a++;
+	a = a + 1;
 
 	if(a > 4) {
 		b = 3;
@@ -25,8 +25,8 @@ int main(){
 
 	int i = 0;
 	while(i<10){
-		b++;
-		array[i] = array[i]++;
-		i++;
+		b = b + 1;
+		array[i] = array[i] + 1;
+		i = i + 1;
 	}
 }
