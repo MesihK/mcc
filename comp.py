@@ -46,13 +46,29 @@ reserved = (
 
 tokens = reserved + (
     'ID', 'NUMBER', 
+
+    # Operators (<<,>>, ||, &&, <=, >=, ==, !=)
+    'LSHIFT', 'RSHIFT',
+    'LOR', 'LAND',
+    'LE', 'GE', 'EQ', 'NE',
 )
 
-literals = ['=', '+', '-', '*', '/', '&', '|', '^', '~', '(', ')', '{', '}', '[', ']', ';', ',']
+literals = ['=', '+', '-', '*', '/', '&', '|', '^', '~', '(', ')', '{', '}',
+            '[', ']', ';', ',', '!', '<', '>']
 
 # Tokens
 
 #t_NAME = r'[a-zA-Z_][a-zA-Z0-9_]*'
+
+# Operators
+t_LSHIFT = r'<<'
+t_RSHIFT = r'>>'
+t_LOR = r'\|\|'
+t_LAND = r'&&'
+t_LE = r'<='
+t_GE = r'>='
+t_EQ = r'=='
+t_NE = r'!='
 
 reserved_map = {}
 for r in reserved:
@@ -101,6 +117,14 @@ precedence = (
 # dictionary of names
 names = {}
 
+def p_statement_if_def(p):
+    'statement : IF "(" expression ")" statement '
+    print('if definition', p[3], p[5])
+
+def p_statement_if_else_def(p):
+    'statement : IF "(" expression ")" statement ELSE statement '
+    print('if else definition', p[3], p[5], p[7])
+
 def p_statement_arr_def(p):
     'statement : INT ID "[" NUMBER "]" "=" "{" expression_list "}" ";"'
     print('array definition', p[2], p[4], p[8])
@@ -143,7 +167,8 @@ def p_expression_list(p):
     p[0] = str(p[1])+','+str(p[3])
 
 def p_statement_expr(p):
-    'statement : expression ";"'
+    '''statement : expression ";"
+                 | compound_statement'''
     print(p[1])
 
 
@@ -212,6 +237,36 @@ def p_expression_name(p):
         print("Undefined name '%s'" % p[1])
         p[0] = 0
 
+def p_cond_exp(p):
+    '''expression : eq_exp'''
+    print('cond', p[1])
+    p[0] = p[1]
+
+def p_eq_exp(p):
+    '''eq_exp : expression EQ expression
+              | expression NE expression
+              | expression LOR expression
+              | expression LAND expression
+              | expression GE expression
+              | expression LE expression'''
+    print('cond eq', p[1], p[2], p[3])
+    p[0] = 0
+
+#-----------------------------------------------------------------------
+def p_compound_statement(p):
+    '''compound_statement : "{" statement_list "}"
+                          | "{" "}"'''
+    print('p_compound_statement')
+    pass
+
+
+def p_statement_list(p):
+    '''statement_list : statement
+                      | statement_list statement'''
+    print('statement_list')
+    pass
+
+#-----------------------------------------------------------------------
 
 def p_error(p):
     if p:
