@@ -144,7 +144,11 @@ def p_expression_binop(p):
 
 def p_expression_uminus(p):
     "expression : '-' expression %prec UMINUS"
-    p[0] = -p[2]
+    if is_reg(p[2]):
+        print('sub ', '$'+p[2]+',',  '$zero,', '$'+p[2], file=asm)
+        p[0] = p[2]
+    else:
+        p[0] = -p[2]
 
 
 def p_expression_group(p):
