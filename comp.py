@@ -4,7 +4,7 @@ sys.path.insert(0, "../..")
 if sys.version_info[0] >= 3:
     raw_input = input
 
-asm = open(sys.argv[1], "w")
+asm = open(sys.argv[1], "w+")
 stack_pointer = 0
 registers = {
     #'at':0, 'v0':0, 'v1':0,
@@ -59,8 +59,6 @@ literals = ['=', '+', '-', '*', '/', '&', '|', '^', '~', '(', ')', '{', '}',
 
 # Tokens
 
-#t_NAME = r'[a-zA-Z_][a-zA-Z0-9_]*'
-
 # Operators
 t_LSHIFT = r'<<'
 t_RSHIFT = r'>>'
@@ -106,17 +104,14 @@ lex.lex()
 # Parsing rules
 
 precedence = (
-#    ('left', '^'),
-#    ('left', '|'),
-#    ('left', '&'),
     ('left', '+', '-'),
     ('left', '*', '/'),
-#    ('right', '~'),
     ('right', 'UMINUS'),
 )
 
 # dictionary of names
 names = {}
+variables = {}
 
 def p_statement_if_def(p):
     'statement : IF "(" expression ")" statement '
@@ -127,41 +122,55 @@ def p_statement_if_else_def(p):
     print('if else definition', p[3], p[5], p[7])
 
 def p_statement_arr_def(p):
-    'statement : INT ID "[" NUMBER "]" "=" "{" expression_list "}" ";"'
-    print('array definition', p[2], p[4], p[8])
+    '''statement : INT ID "[" NUMBER "]" "=" "{" expression_list "}" ";"
+                 | INT ID "[" NUMBER "]" ";" '''
+    #TODO if exists split p[8] by ',' 
+    if len(p) <= 7:
+        print('array definition', p[2], p[4])
+        #definition without initialization
+        #initialize with zeros;
+        def_str = '0'
+        for i in range(1,int(p[4])):
+                def_str = def_str + ', '
+                def_str = def_str + '0'
+
+        variables[p[2]] = def_str
+    else:
+        print('array definition', p[2], p[4], p[8])
+        #definition with initialization
+        #split p[8] by ,
+        #for i in range(1,int(p[4]):
+            #if there is a reg in expression list than implement asm code
+            #if is_reg[
+        variables[p[2]] = p[8]
 
 def p_statement_def(p):
     '''statement : INT ID "=" expression ";"
                  | INT ID ";"'''
     print('variable definition of:', p[2], len(p))
     global stack_pointer
-    stack_pointer = stack_pointer + 4
-    s = stack_pointer
-    if len(p) < 6:
-        print('sw', '$zero,', str(s)+'($sp)', file=asm)
-    else:
+    variables[p[2]] = "0"
+    if len(p) >= 6:
         if is_reg(p[4]):
-            print('sw', '$'+p[4]+',', str(s)+'($sp)', file=asm)
+            print('sw', '$'+p[4]+',', p[2], file=asm)
             dealloc_reg(p[4])
         else:
             r1 = alloc_reg()
             print('li', '$'+r1+',', p[4], file=asm)
-            print('sw', '$'+r1+',', str(s)+'($sp)', file=asm)
+            print('sw', '$'+r1+',', p[2], file=asm)
             dealloc_reg(r1)
-    names[p[2]] = [s, 1]
 
 def p_statement_assign(p):
     'statement : ID "=" expression ";"'
     print('variable assign:', p[1])
-    if p[1] not in names : raise Exception(p[1]+' is not defined')
-    s, l = names[p[1]]
+    if p[1] not in variables : raise Exception(p[1]+' is not defined')
     if is_reg(p[3]):
-        print('sw', '$'+p[3], ',', str(s)+'($sp)', file=asm)
+        print('sw', '$'+p[3], ',', p[1], file=asm)
         dealloc_reg(p[3])
     else:
         r1 = alloc_reg()
         print('li', '$'+r1, ',', p[3], file=asm)
-        print('sw', '$'+r1, ',', str(s)+'($sp)', file=asm)
+        print('sw', '$'+r1, ',', p[1], file=asm)
         dealloc_reg(r1)
 
 def p_expression_list(p):
@@ -181,7 +190,6 @@ def p_expression_binop(p):
                   | expression '-' expression
                   | expression '*' expression
                   | expression '/' expression'''
-    #print('calculate ' , p[0] , '=' , p[1] , p[2] , p[3])
     r1 = alloc_reg()
     if is_reg(p[1]): r2 = p[1]
     else :
@@ -233,9 +241,8 @@ def p_expression_number(p):
 def p_expression_name(p):
     "expression : ID"
     try:
-        s, l = names[p[1]]
         r1 = alloc_reg()
-        print('lw', '$'+r1, str(s)+'($sp)', file=asm)
+        print('lw', '$'+r1, p[1], file=asm)
         p[0] = r1
     except LookupError:
         print("Undefined name '%s'" % p[1])
@@ -281,8 +288,6 @@ def p_error(p):
 import ply.yacc as yacc
 yacc.yacc()
 
-print('.data', file=asm)
-print('.text', file=asm)
 while 1:
     try:
         s = raw_input('calc > ')
@@ -295,7 +300,11 @@ while 1:
         continue
     yacc.parse(s)
 
-print('#Variable List:', file=asm)
-for var in names:
-    print('#'+var, 'is at:', names[var], file=asm)
-
+asm.seek(0,0); #goto begining
+data = asm.read()
+asm.seek(0,0); #goto begining
+print('.data', file=asm)
+for var in variables:
+    print(var+':', '.word', variables[var], file=asm)
+print('.text', file=asm)
+asm.write(data)
