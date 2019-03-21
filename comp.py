@@ -126,7 +126,6 @@ def p_statement_arr_def(p):
                  | INT ID "[" NUMBER "]" ";" '''
     #TODO if exists split p[8] by ',' 
     if len(p) <= 7:
-        print('array definition', p[2], p[4])
         #definition without initialization
         #initialize with zeros;
         def_str = '0'
@@ -136,18 +135,38 @@ def p_statement_arr_def(p):
 
         variables[p[2]] = def_str
     else:
-        print('array definition', p[2], p[4], p[8])
         #definition with initialization
-        #split p[8] by ,
-        #for i in range(1,int(p[4]):
+        exps = p[8].strip().split(',')
+        if len(exps) != int(p[4]): raise Exception("array initialization error")
+        def_str = ""
+        i = 0
+        for exp in exps:
             #if there is a reg in expression list than implement asm code
-            #if is_reg[
-        variables[p[2]] = p[8]
+            if is_reg(exp):
+                def_str = def_str + '0'
+                r1 = alloc_reg()
+                r2 = alloc_reg()
+                print('la', '$'+r1+',', p[2], file=asm)# put address of list into $r1
+                print('li', '$'+r2+',', str(i), file=asm)# put the index into $r2
+                print('add', '$'+r2+',', '$'+r2+',', '$'+r2, file=asm)# double the index
+                print('add', '$'+r2+',', '$'+r2+',', '$'+r2, file=asm)# double the index again 4x
+                print('add', '$'+r2+',', '$'+r2+',', '$'+r1, file=asm)# combine to get address
+                print('sw', '$'+exp+',', '0($'+r2+')', file=asm)#store the value of reg to array
+                dealloc_reg(r1)
+                dealloc_reg(r2)
+                dealloc_reg(exp)
+            else:
+                def_str = def_str + exp
+            if exp != exps[-1]:
+                def_str = def_str + ", "
+            i = i + 1
+
+        variables[p[2]] = def_str
 
 def p_statement_def(p):
     '''statement : INT ID "=" expression ";"
                  | INT ID ";"'''
-    print('variable definition of:', p[2], len(p))
+    #print('variable definition of:', p[2], len(p))
     variables[p[2]] = "0"
     if len(p) >= 6:
         if is_reg(p[4]):
@@ -161,7 +180,7 @@ def p_statement_def(p):
 
 def p_statement_assign(p):
     'statement : ID "=" expression ";"'
-    print('variable assign:', p[1])
+    #print('variable assign:', p[1])
     if p[1] not in variables : raise Exception(p[1]+' is not defined')
     if is_reg(p[3]):
         print('sw', '$'+p[3]+',', p[1], file=asm)
@@ -181,7 +200,8 @@ def p_expression_list(p):
 def p_statement_expr(p):
     '''statement : expression ";"
                  | compound_statement'''
-    print(p[1])
+    #print(p[1])
+    pass
 
 
 def p_expression_binop(p):
@@ -229,7 +249,45 @@ def p_expression_group(p):
 
 def p_expression_arr_name(p):
     "expression : ID '[' expression ']'"
-    print('array access', p[1], p[3])
+    #print('array access', p[1], p[3])
+    r1 = alloc_reg()
+    r2 = alloc_reg()
+    print('la', '$'+r2+',', p[1], file=asm)# put address of list into $r1
+    if is_reg(p[3]):
+        r3 = p[3]
+    else:
+        r3 = alloc_reg()
+        print('li', '$'+r3+',', str(p[3]), file=asm)# put the index into $r2
+    print('add', '$'+r3+',', '$'+r3+',', '$'+r3, file=asm)# double the index
+    print('add', '$'+r3+',', '$'+r3+',', '$'+r3, file=asm)# double the index again 4x
+    print('add', '$'+r3+',', '$'+r3+',', '$'+r2, file=asm)# combine to get address
+    print('lw', '$'+r1+',', '0($'+r3+')', file=asm)#load array val to the reg 
+    dealloc_reg(r2)
+    dealloc_reg(r3)
+    p[0] = r1;
+
+def p_expression_arr_asign(p):
+    "expression : ID '[' expression ']' '=' expression"
+    #print('array asign', p[1], p[3], p[6])
+    r2 = alloc_reg()
+    print('la', '$'+r2+',', p[1], file=asm)# put address of list into $r1
+    if is_reg(p[3]):
+        r3 = p[3]
+    else:
+        r3 = alloc_reg()
+        print('li', '$'+r3+',', str(p[3]), file=asm)# put the index into $r2
+    print('add', '$'+r3+',', '$'+r3+',', '$'+r3, file=asm)# double the index
+    print('add', '$'+r3+',', '$'+r3+',', '$'+r3, file=asm)# double the index again 4x
+    print('add', '$'+r3+',', '$'+r3+',', '$'+r2, file=asm)# combine to get address
+    if is_reg(p[6]):
+        r1 = p[6]
+    else:
+        r1 = alloc_reg()
+        print('li', '$'+r1+',', str(p[6]), file=asm)# put the index into $r2
+    print('sw', '$'+r1+',', '0($'+r3+')', file=asm)#store the value of reg to array
+    dealloc_reg(r1)
+    dealloc_reg(r2)
+    dealloc_reg(r3)
 
 
 def p_expression_number(p):
