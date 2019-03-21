@@ -36,15 +36,33 @@ def is_reg(r):
     else:
         return False
 
-tokens = (
-    'NAME', 'NUMBER',
+# Reserved words
+reserved = (
+    'AUTO', 'BREAK', 'CASE', 'CHAR', 'CONST', 'CONTINUE', 'DEFAULT', 'DO', 'DOUBLE',
+    'ELSE', 'ENUM', 'EXTERN', 'FLOAT', 'FOR', 'GOTO', 'IF', 'INT', 'LONG', 'REGISTER',
+    'RETURN', 'SHORT', 'SIGNED', 'SIZEOF', 'STATIC', 'STRUCT', 'SWITCH', 'TYPEDEF',
+    'UNION', 'UNSIGNED', 'VOID', 'VOLATILE', 'WHILE',
+)
+
+tokens = reserved + (
+    'ID', 'NUMBER', 
 )
 
 literals = ['=', '+', '-', '*', '/', '&', '|', '^', '~', '(', ')', '{', '}', '[', ']', ';', ',']
 
 # Tokens
 
-t_NAME = r'[a-zA-Z_][a-zA-Z0-9_]*'
+#t_NAME = r'[a-zA-Z_][a-zA-Z0-9_]*'
+
+reserved_map = {}
+for r in reserved:
+    reserved_map[r.lower()] = r
+
+
+def t_ID(t):
+    r'[A-Za-z_][\w_]*'
+    t.type = reserved_map.get(t.value, "ID")
+    return t
 
 
 def t_NUMBER(t):
@@ -83,18 +101,31 @@ precedence = (
 # dictionary of names
 names = {}
 
+def p_statement_arr_def(p):
+    'statement : INT ID "[" NUMBER "]" "=" "{" expression_list "}" ";"'
+    print('array definition', p[2], p[4], p[8])
+
+def p_statement_def(p):
+    'statement : INT ID "=" expression ";"'
+    print('variable definition of:', p[2])
+    global stack_pointer
+    stack_pointer = stack_pointer + 4
+    s = stack_pointer
+    if is_reg(p[4]):
+        print('sw', '$'+p[4], ',', str(s)+'($sp)', file=asm)
+        dealloc_reg(p[4])
+    else:
+        r1 = alloc_reg()
+        print('li', '$'+r1, ',', p[4], file=asm)
+        print('sw', '$'+r1, ',', str(s)+'($sp)', file=asm)
+        dealloc_reg(r1)
+    names[p[2]] = s
 
 def p_statement_assign(p):
-    'statement : NAME "=" expression'
-    global stack_pointer
-    s = 0
-    if p[1] in names:
-        #print(p[1], 'already allocated')
-        s = names[p[1]]
-    else:
-        stack_pointer = stack_pointer + 4
-        s = stack_pointer
-        #print('allocate', p[1], 'at', s)
+    'statement : ID "=" expression ";"'
+    print('variable assign:', p[1])
+    if p[1] not in names : raise Exception(p[1]+' is not defined')
+    s = names[p[1]]
     if is_reg(p[3]):
         print('sw', '$'+p[3], ',', str(s)+'($sp)', file=asm)
         dealloc_reg(p[3])
@@ -105,9 +136,14 @@ def p_statement_assign(p):
         dealloc_reg(r1)
     names[p[1]] = s
 
+def p_expression_list(p):
+    '''expression_list : expression ',' expression 
+                       | expression_list ',' expression 
+                       | expression_list ',' expression_list '''
+    p[0] = str(p[1])+','+str(p[3])
 
 def p_statement_expr(p):
-    'statement : expression'
+    'statement : expression ";"'
     print(p[1])
 
 
@@ -155,6 +191,10 @@ def p_expression_group(p):
     "expression : '(' expression ')'"
     p[0] = p[2]
 
+def p_expression_arr_name(p):
+    "expression : ID '[' expression ']'"
+    print('array access', p[1], p[3])
+
 
 def p_expression_number(p):
     "expression : NUMBER"
@@ -162,7 +202,7 @@ def p_expression_number(p):
 
 
 def p_expression_name(p):
-    "expression : NAME"
+    "expression : ID"
     try:
         s = names[p[1]]
         r1 = alloc_reg()
