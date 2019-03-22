@@ -3,7 +3,11 @@
 #ast = ('decli', 'int', 'i', ('binop', '+', 3, 5))
 #ast = ('decli', 'int', 'i', ('binop', '+', 3, ('binop', '*', 5, 2)))
 #ast = ('unit', ('decli', 'int', 'a'), ('decli', 'int', 'i', ('binop', '+', 3, ('binop', '*', 5, 2))))
-ast = ('unit', ('unit', ('decli', 'int', 'a'), ('decli', 'int', 'i', ('binop', '+', 3, ('binop', '*', 5, 2)))), ('fun', 'int', 'main', ('asign', 'a', ('binop', '*', 3, 2))))
+#ast = ('unit', ('unit', ('decli', 'int', 'a'), ('decli', 'int', 'i', ('binop', '+', 3, ('binop', '*', 5, 2)))), ('fun', 'int', 'main', ('asign', 'a', ('binop', '*', 3, 2))))
+#ast = ('unit', ('unit', ('decli', 'int', 'a'), ('decli', 'int', 'i', ('binop', '+', 3, ('binop', '*', 5, 2)))), ('fun', 'int', 'main', (('asign', 'a', ('binop', '*', 3, 2)), ('asign', 'i', ('binop', '*', 3, ('id', 'a'))))))
+ast = ('unit', ('unit', ('unit', ('decli', 'int', 'a'), ('decli', 'int', 'i', ('binop', '+', 3, ('binop', '*', 5, 2)))), ('fun', 'int', 'main', (('asign', 'a', ('binop', '*', 3, 2)), ('asign', 'i', ('binop', '*', 3, ('id', 'a')))))), ('fun', 'int', 'test', (('decli', 'int', 'c', 4), ('asign', 'i', ('binop', '+', ('id', 'c'), 2)))))
+
+
 
 
 
@@ -68,11 +72,14 @@ print(ast)
 print('parse ast')
 
 def parse_ast(ast):
-    ret = ""
     if type(ast[0]) == tuple:
+        r = list()
+        ins = list()
         for inst in ast:
-            ret = ret + parse_ast(inst)
-        return ret
+            ri, insi = parse_ast(inst)
+            #r = (r,  ri)
+            ins = ins + insi
+        return None, ins
     if ast[0] == 'unit':
         v_e1 = ast[1]
         v_e2 = ast[2]
@@ -82,7 +89,7 @@ def parse_ast(ast):
             v_e1, ins1 = parse_ast(v_e1)
         if type(v_e2) == tuple:
             v_e2, ins2 = parse_ast(v_e2)
-        return (v_e1,v_e2), ins1+ins2
+        return None, ins1+ins2
 
     if ast[0] == 'fun':
         print('fun')
@@ -92,8 +99,15 @@ def parse_ast(ast):
         ins = list()
         ins.append(f_name+':')
         r, insf = parse_ast(f_stm)
+        if f_name is not 'main':
+            insf.append('jr $ra')
+        else:
+            insf.append('#prgoram finished call terminate')
+            insf.append('li $v0 10')
+            insf.append('syscall')
         functions[f_name] = r, ins+insf 
         return None, list()
+
     elif ast[0] == 'decli':
         inse = list()
         v_type = ast[1]
@@ -107,7 +121,7 @@ def parse_ast(ast):
                 dealloc_reg(re)
             else:
                 r1 = alloc_reg()
-                inse.append('li $'+r1+','+v_exp)
+                inse.append('li $'+r1+','+str(v_exp))
                 inse.append('sw $'+r1+','+v_name)
                 dealloc_reg(r1)
         else:
@@ -121,7 +135,14 @@ def parse_ast(ast):
         ins = list()
         if type(v_exp) == tuple:
             v_exp, ins = parse_ast(v_exp)
-        return v_exp, ins
+            ins.append('sw $'+v_exp+', '+v_name)
+            dealloc_reg(v_exp)
+        else:
+            r1 = alloc_reg()
+            ins.append('li $'+r1+','+str(v_exp))
+            ins.append('sw $'+r1+','+v_name)
+            dealloc_reg(r1)
+        return None, ins
 
     elif ast[0] == 'binop':
         print('binop')
@@ -141,11 +162,34 @@ def parse_ast(ast):
     elif ast[0] == 'id':
         print('var access')
         v_name = ast[1]
+        r1 = alloc_reg()
+        ins = list()
+        ins.append('lw $'+r1+','+v_name)
+        return r1, ins
     return ret;
 
 
-i=0
+ins = list()
 v, ins = parse_ast(ast)
+
+i=0
+ins.insert(i, '.data')
+i = i+1
+for var in variables:
+    ins.insert(i, var+': .word ' + variables[var][1])
+    i = i+1
+
+ins.insert(i, '.text')
+i = i+1
+
+for line in functions['main'][1]:
+    ins.append(line)
+
+for f in functions:
+    if f == 'main': continue
+    for line in functions[f][1]:
+        ins.append(line)
+
 print(v, ins)
 asm = open('out.asm', "w+")
 for line in ins:
