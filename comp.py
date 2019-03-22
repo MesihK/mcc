@@ -1,6 +1,10 @@
 import sys
 sys.path.insert(0, "../..")
 
+#TODO: construct AST 
+#TODO: construct AST resolver 
+#TODO: construct Embedded Actions 
+
 if sys.version_info[0] >= 3:
     raw_input = input
 
@@ -113,9 +117,23 @@ precedence = (
 names = {}
 variables = {}
 
+lbl_cnt = 0
+
+def p_statement_expr(p):
+    '''statement : expression ";"
+                 | compound_statement'''
+    #print(p[1])
+    pass
+
+
 def p_statement_if_def(p):
     'statement : IF "(" expression ")" statement '
     print('if definition', p[3], p[5])
+    global lbl_cnt
+    lbl_cnt = lbl_cnt + 1;
+    print('if_start_'+str(lbl_cnt)+':', file=asm)# generate start label
+    print('if_end_'+str(lbl_cnt)+':', file=asm)# generate start label
+
 
 def p_statement_if_else_def(p):
     'statement : IF "(" expression ")" statement ELSE statement '
@@ -196,12 +214,6 @@ def p_expression_list(p):
                        | expression_list ',' expression 
                        | expression_list ',' expression_list '''
     p[0] = str(p[1])+','+str(p[3])
-
-def p_statement_expr(p):
-    '''statement : expression ";"
-                 | compound_statement'''
-    #print(p[1])
-    pass
 
 
 def p_expression_binop(p):
@@ -345,10 +357,11 @@ def p_error(p):
 import ply.yacc as yacc
 yacc.yacc()
 
-c_lines = c.readlines();
-for line in c_lines:
-    asm.write('#'+line)
-    yacc.parse(line)
+#c_lines = c.readlines();
+#for line in c_lines:
+#    asm.write('#'+line)
+#    yacc.parse(line)
+yacc.parse(c.read())
 
 asm.seek(0,0); #goto begining
 data = asm.read()
