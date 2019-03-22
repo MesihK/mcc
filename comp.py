@@ -210,7 +210,7 @@ def p_statement_list(p):
     if len(p) >= 3:
         p[0] = ('stm_lst', p[1], p[2])
     else:
-        p[0] = ('stm', p[1])
+        p[0] = p[1]
 
 def p_error(p):
     if p:
