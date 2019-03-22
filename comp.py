@@ -107,7 +107,7 @@ def p_statement_expr(p):
                  | decleration
                  | fun_call
                  | compound_statement'''
-    p[0] = ('stmt', p[1])
+    p[0] = p[1]
 
 def p_decleration_specifier (p):
     '''decleration_specifier : VOID
@@ -139,7 +139,7 @@ def p_statement_def(p):
     if len(p) >= 6:
         p[0] = ('decli', p[1], p[2], p[4])
     else:
-        p[0] = ('decl', p[1], p[2])
+        p[0] = ('decli', p[1], p[2])
 
 def p_statement_assign(p):
     'statement : ID "=" expression ";"'
@@ -204,16 +204,14 @@ def p_compound_statement(p):
     '''compound_statement : "{" statement_list "}"
                           | "{" "}"'''
     if len(p) >= 4:
-        p[0] = ('comp_stm', p[2])
-    else:
-        p[0] = ('comp_stm')
+        p[0] = p[2]
 
 
 def p_statement_list(p):
     '''statement_list : statement
                       | statement_list statement'''
     if len(p) >= 3:
-        p[0] = ('stm_lst', p[1], p[2])
+        p[0] = (p[1], p[2])
     else:
         p[0] = p[1]
 
