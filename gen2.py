@@ -1,16 +1,16 @@
-#ast = ('fun', 'int', 'main', ('comp_stm', ('stm_lst', ('stmt', ('decli', 'int', 'i', 1)), ('asign', 'i', ('binop', '+', ('binop', '/',('binop', '*', 3, 5), 2), ('id', 'i'))))))
-#ast = ('fun', 'int', 'main', (('decli', 'int', 'i', 1), ('asign', 'i', ('binop', '+', ('binop', '/', ('binop', '*', 3, 5), 2), ('id', 'i')))))
-#ast = ('decli', 'int', 'i', ('binop', '+', 3, 5))
-#ast = ('decli', 'int', 'i', ('binop', '+', 3, ('binop', '*', 5, 2)))
-#ast = ('unit', ('decli', 'int', 'a'), ('decli', 'int', 'i', ('binop', '+', 3, ('binop', '*', 5, 2))))
-#ast = ('unit', ('unit', ('decli', 'int', 'a'), ('decli', 'int', 'i', ('binop', '+', 3, ('binop', '*', 5, 2)))), ('fun', 'int', 'main', ('asign', 'a', ('binop', '*', 3, 2))))
-#ast = ('unit', ('unit', ('decli', 'int', 'a'), ('decli', 'int', 'i', ('binop', '+', 3, ('binop', '*', 5, 2)))), ('fun', 'int', 'main', (('asign', 'a', ('binop', '*', 3, 2)), ('asign', 'i', ('binop', '*', 3, ('id', 'a'))))))
 ast = ('unit', ('unit', ('unit', ('decli', 'int', 'a'), ('decli', 'int', 'i', ('binop', '+', 3, ('binop', '*', 5, 2)))), ('fun', 'int', 'main', (('asign', 'a', ('binop', '*', 3, 2)), ('asign', 'i', ('binop', '*', 3, ('id', 'a')))))), ('fun', 'int', 'test', (('decli', 'int', 'c', 4), ('asign', 'i', ('binop', '+', ('id', 'c'), 2)))))
 
-
-
-
-
+#TODO
+# function call
+# if - else
+# while
+# arrays
+# local variables
+# gloabal variables
+# function recursion
+# function arguments
+# function return
+# char variable
 
 registers = {
     #'at':0, 'v0':0, 'v1':0,
@@ -182,8 +182,9 @@ for var in variables:
 ins.insert(i, '.text')
 i = i+1
 
-for line in functions['main'][1]:
-    ins.append(line)
+if 'main' in functions:
+    for line in functions['main'][1]:
+        ins.append(line)
 
 for f in functions:
     if f == 'main': continue
