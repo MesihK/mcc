@@ -1,4 +1,5 @@
-ast = ('unit', ('unit', ('unit', ('decli', 'int', 'i', 0), ('fun', 'int', 'main', ((('decli', 'int', 'a', ('binop', '*', ('id', 'i'), 3)), ('decli', 'int', 'b', 4)), ('asign', 'i', ('binop', '+', ('id', 'a'), ('id', 'b')))))), ('fun', 'int', 'test', (('decli', 'int', 'c'), ('decli', 'int', 'd')))), ('fun', 'int', 't2', ('asign', 'i', 3)))
+ast = ('unit', ('unit', ('unit', ('unit', ('decli', 'int', 'i', 0), ('arrdeci', 'int', 'arr', 3, ((0, 1), 2))), ('fun', 'int', 'main', (((('decli', 'int', 'a', ('binop', '*', ('id', 'i'), 3)), ('arrdeciz', 'int', 'b', 3)), ('decli', 'int', 'c', 2)), ('asign', 'i', ('binop', '+', ('id', 'a'), ('id', 'c')))))), ('fun', 'int', 'test', ((('decli', 'int', 'c'), ('decli', 'int', 'd')), ('arrdeci', 'int', 'ar2', 3, ((0, ('id', 'i')), 2))))), ('fun', 'int', 't2', ('asign', 'i', 3)))
+
 
 
 
@@ -10,7 +11,7 @@ ast = ('unit', ('unit', ('unit', ('decli', 'int', 'i', 0), ('fun', 'int', 'main'
 # *OK - while
 # *OK - local variables
 # *OK - gloabal variables
-# arrays
+# *OK - arrays
 # char variable
 # function recursion
 # function arguments
@@ -119,21 +120,30 @@ global_fun_name = ''
 def get_stack_num(f_name, v_name):
     stack = 0
     for var in l_variables[f_name]:
-        if v_name in var: break
-        stack += 1
+        if v_name == var: break
+        stack += l_variables[f_name][var][1]
     return ((stack+1)*4)
 
 def parse_ast(ast):
     global global_var
     global global_fun_name
-    if type(ast[0]) == tuple:
-        r = list()
+    if type(ast) == int:
+        return ast, list()
+    if type(ast[0]) == int:
+        r, ins = parse_ast(ast[1])
+        return (ast[0],r), ins
+    elif type(ast[0]) == tuple:
+        r = None 
         ins = list()
         for inst in ast:
             ri, insi = parse_ast(inst)
-            #r = (r,  ri)
+            if ri is not None:
+                if r == None:
+                    r = ri
+                else:
+                    r = (r,  ri)
             ins = ins + insi
-        return None, ins
+        return r, ins
     if ast[0] == 'unit':
         global_var = True
         v_e1 = ast[1]
@@ -160,7 +170,7 @@ def parse_ast(ast):
         tot_var = 1
         if f_name in l_variables:
             for var in l_variables[f_name]:
-                tot_var += 1
+                tot_var += l_variables[f_name][var][1]
         #allocate stack
         ins.append('addi $sp, $sp, -'+str(tot_var*4))
         #save ra
@@ -263,9 +273,9 @@ def parse_ast(ast):
             g_variables[v_name] = (v_type, '0') 
         else:
             if global_fun_name not in l_variables:
-                l_variables[global_fun_name] = ({v_name: (v_type, 1)})
+                l_variables[global_fun_name] = {v_name: (v_type, 1)}
             else:
-                l_variables[global_fun_name] = ((l_variables[global_fun_name]),({v_name: (v_type, 1)}))
+                l_variables[global_fun_name][v_name] = (v_type, 1)
             stack  = get_stack_num(global_fun_name, v_name)
         if len(ast) > 3:
             print('integer decleration with exp',global_fun_name,  global_var)
@@ -291,46 +301,61 @@ def parse_ast(ast):
             if not global_var:
                 inse.append('sw $zero, '+str(stack)+'($sp)')
         return None, inse
-    elif ast[0] == 'arrdec':
+    elif ast[0] == 'arrdeciz':
         inse = list()
         v_type = ast[1]
         v_name = ast[2]
         v_num = ast[3]
         stack = 0
-        dec = '0'
-        for i in range(int(v_num)-1):
-                dec += ', 0'
         if global_var:
+            dec = '0'
+            for i in range(int(v_num)-1):
+                    dec += ', 0'
             g_variables[v_name] = (v_type, dec) 
         else:
             if global_fun_name not in l_variables:
-                l_variables[global_fun_name] = ({v_name: (v_type, v_num)})
+                l_variables[global_fun_name] = {v_name: (v_type, v_num)}
             else:
-                l_variables[global_fun_name] = ((l_variables[global_fun_name]),({v_name: (v_type, v_num)}))
+                l_variables[global_fun_name][v_name] = (v_type, v_num)
             stack  = get_stack_num(global_fun_name, v_name)
-        if len(ast) > 4:
-            print('arr decleration with exp',global_fun_name,  global_var)
-            v_exp = ast[4]
-            if type(v_exp) == tuple:
-                re, inse = parse_ast(v_exp)
-                if global_var:
-                    inse.append('sw $'+re+','+v_name)
-                else:
-                    inse.append('sw $'+re+', '+str(stack)+'($sp)')
-                dealloc_reg(re)
-            else:
-                r1 = alloc_reg()
-                if global_var:
-                    inse.append('li $'+r1+','+str(v_exp))
-                    inse.append('sw $'+r1+','+v_name)
-                else:
-                    inse.append('li $'+r1+','+str(v_exp))
-                    inse.append('sw $'+r1+', '+str(stack)+'($sp)')
-                dealloc_reg(r1)
+        print('arr decleration ',global_fun_name,  global_var)
+        if not global_var:
+            for i in range(int(v_num)):
+                inse.append('sw $zero, '+str(stack+i*4)+'($sp)')
+        return None, inse
+    elif ast[0] == 'arrdeci':
+        inse = list()
+        v_type = ast[1]
+        v_name = ast[2]
+        v_num = ast[3]
+        v_list = ast[4]
+        stack = 0
+        if global_var:
+            g_variables[v_name] = (v_type, str(v_list).replace('(','').replace(')','')) 
         else:
-            print('integer decleration ',global_fun_name,  global_var)
-            if not global_var:
-                inse.append('sw $zero, '+str(stack)+'($sp)')
+            if global_fun_name not in l_variables:
+                l_variables[global_fun_name] = {v_name: (v_type, v_num)}
+            else:
+                l_variables[global_fun_name][v_name] = (v_type, v_num)
+            stack  = get_stack_num(global_fun_name, v_name)
+        print('arr decleration ',global_fun_name,  global_var)
+        if not global_var:
+            i = 0
+            r, ins = parse_ast(v_list)
+            exp_list = str(r).replace("'",'').replace(' ','').replace('(','').replace(')','').split(',')
+            for exp in exp_list:
+                try:
+                    e = int(exp)
+                    r1 = alloc_reg()
+                    ins.append('li $'+r1+','+str(e))
+                    ins.append('sw $'+r1+', '+str(stack+i*4)+'($sp)')
+                    dealloc_reg(r1)
+                except ValueError as ex:
+                    r = exp
+                    ins.append('sw $'+r+', '+str(stack+i*4)+'($sp)')
+                    dealloc_reg(r)
+                i += 1
+            inse += ins
         return None, inse
 
     elif ast[0] == 'asign':
@@ -359,6 +384,18 @@ def parse_ast(ast):
             dealloc_reg(r1)
         return None, ins
 
+    elif ast[0] == 'id':
+        print('var access')
+        v_name = ast[1]
+        ins = list()
+        r1 = alloc_reg()
+        if v_name in g_variables:
+            ins.append('lw $'+r1+','+v_name)
+        else:
+            stack = get_stack_num(global_fun_name, v_name)
+            ins.append('lw $'+r1+', '+str(stack)+'($sp)')
+        return r1, ins
+
     elif ast[0] == 'binop':
         print('binop')
         v_op = ast[1]
@@ -385,6 +422,8 @@ def parse_ast(ast):
             stack = get_stack_num(global_fun_name, v_name)
             ins.append('lw $'+r1+', '+str(stack)+'($sp)')
         return r1, ins
+    else:
+        print('unknown', ast)
     return ret;
 
 
