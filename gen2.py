@@ -1,11 +1,10 @@
-ast = ('unit', ('unit', ('decli', 'int', 'i', 0), ('fun', 'void', 'test', ('asign', 'i', ('binop', '+', ('id', 'i'), 1)))), ('fun', 'int', 'main', ('if', ('cond', '==', ('id', 'i'), 0), ('call', 'test'))))
-
+ast = ('unit', ('unit', ('decli', 'int', 'i', 0), ('fun', 'void', 'test', ('asign', 'i', ('binop', '+', ('id', 'i'), 1)))), ('fun', 'int', 'main', (('if', ('cond', '==', ('id', 'i'), 0), ('call', 'test')), ('ifelse', ('cond', '==', ('id', 'i'), 2), ('asign', 'i', 4), ('call', 'test')))))
 
 #TODO
 # *OK - function call
 # *OK - conditional expressions
 # *OK - if
-# if - else
+# *OK - if - else
 # while
 # local variables
 # gloabal variables
@@ -185,7 +184,25 @@ def parse_ast(ast):
         return None, ins
 
     if ast[0] == 'ifelse':
-        return None, list()
+        if_exp = ast[1]
+        if_stmt = ast[2]
+        else_stmt = ast[3]
+        
+        ins = list()
+        ins_e = list()
+        ins_s = list()
+        ins_else = list()
+        if type(if_exp) == tuple:
+            lbl, ins_e = parse_ast(if_exp)
+        if type(if_stmt) == tuple:
+            r, ins_s = parse_ast(if_stmt)
+        if type(else_stmt) == tuple:
+            r, ins_else = parse_ast(else_stmt)
+
+        ins = ins_e + ins_s
+        ins.append(lbl+':')
+        ins = ins + ins_else
+        return None, ins
 
     elif ast[0] == 'decli':
         inse = list()
