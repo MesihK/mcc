@@ -124,6 +124,10 @@ def p_decleration_specifier (p):
                              | CHAR'''
     p[0] = p[1]
 
+def p_statement_return(p):
+    'statement : RETURN expression ";" '
+    p[0] = ('ret', p[2])
+
 def p_statement_while_def(p):
     'statement : WHILE "(" expression ")" statement '
     p[0] = ('while', p[3], p[5])
