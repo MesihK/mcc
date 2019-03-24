@@ -102,21 +102,20 @@ def p_statement_fun_def(p):
     else:
         p[0] = ('fun', p[1], p[2], p[5])
 
+def p_statement_expr(p):
+    '''statement : expression ";"
+                 | decleration ";"
+                 | compound_statement'''
+    p[0] = p[1]
+
 def p_statement_fun_call(p):
-    '''fun_call : ID "(" ")" ";"
-                | ID "(" expression_list ")" ";" '''
+    '''expression : ID "(" ")"
+                  | ID "(" expression_list ")" '''
     if len(p) > 4:
         p[0] = ('calle', p[1], p[3])
     else:
         p[0] = ('call', p[1])
 
-
-def p_statement_expr(p):
-    '''statement : expression ";"
-                 | decleration ";"
-                 | fun_call
-                 | compound_statement'''
-    p[0] = p[1]
 
 def p_decleration_specifier (p):
     '''decleration_specifier : VOID
