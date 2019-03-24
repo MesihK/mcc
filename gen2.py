@@ -2,7 +2,7 @@ ast = ('unit', ('unit', ('decli', 'int', 'i', 0), ('fun', 'void', 'test', ('asig
 
 
 #TODO
-# function call
+# *OK - function call
 # if - else
 # while
 # local variables
@@ -189,16 +189,19 @@ for var in variables:
     i = i+1
 
 ins.insert(i, '.text')
+ins.append('')
 i = i+1
 
 if 'main' in functions:
     for line in functions['main'][1]:
         ins.append(line)
+    ins.append('')
 
 for f in functions:
     if f == 'main': continue
     for line in functions[f][1]:
         ins.append(line)
+    ins.append('')
 
 print(v, ins)
 asm = open('out.asm', "w+")
