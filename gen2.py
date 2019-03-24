@@ -1,16 +1,18 @@
-ast = ('unit', ('unit', ('unit', ('decli', 'int', 'a'), ('decli', 'int', 'i', ('binop', '+', 3, ('binop', '*', 5, 2)))), ('fun', 'int', 'main', (('asign', 'a', ('binop', '*', 3, 2)), ('asign', 'i', ('binop', '*', 3, ('id', 'a')))))), ('fun', 'int', 'test', (('decli', 'int', 'c', 4), ('asign', 'i', ('binop', '+', ('id', 'c'), 2)))))
+ast = ('unit', ('unit', ('decli', 'int', 'i', 0), ('fun', 'void', 'test', ('asign', 'i', ('binop', '+', ('id', 'i'), 1)))), ('fun', 'int', 'main', ((('call', 'test'), ('call', 'test')), ('asign', 'i', 5))))
+
 
 #TODO
 # function call
 # if - else
 # while
-# arrays
 # local variables
 # gloabal variables
+# arrays
+# char variable
 # function recursion
 # function arguments
 # function return
-# char variable
+# asm("add $t0, $t1, $t2")
 
 registers = {
     #'at':0, 'v0':0, 'v1':0,
@@ -107,6 +109,13 @@ def parse_ast(ast):
             insf.append('syscall')
         functions[f_name] = r, ins+insf 
         return None, list()
+
+    if ast[0] == 'call':
+        f_name = ast[1]
+        print('funtcion call', f_name)
+        ins = list()
+        ins.append('jal ' + f_name)
+        return None, ins
 
     elif ast[0] == 'decli':
         inse = list()
