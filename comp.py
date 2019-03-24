@@ -1,4 +1,5 @@
 import sys
+import gen2
 sys.path.insert(0, "../..")
 
 #TODO: construct AST 
@@ -94,7 +95,7 @@ def p_unit(p):
     p[0] = p[1]
 
 def p_statement_fun_def(p):
-    'fun_def : decleration_specifier ID "(" ")" compound_statement '
+    '''fun_def : decleration_specifier ID "(" ")" compound_statement'''
     p[0] = ('fun', p[1], p[2], p[5])
 
 def p_statement_fun_call(p):
@@ -230,7 +231,9 @@ import ply.yacc as yacc
 yacc.yacc()
 
 ast = yacc.parse(c.read())
-print(ast)
 fast = open('ast', 'w')
 print(ast, file=fast)
+asm = open(sys.argv[2], 'w+')
+print('# Generated from: ' + sys.argv[1], file=asm)
+gen2.parse(ast, asm)
 

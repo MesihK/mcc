@@ -1,8 +1,4 @@
-ast = ('unit', ('unit', ('unit', ('unit', ('decli', 'int', 'i', 0), ('arrdeci', 'int', 'arr', 3, ((0, 1), 2))), ('fun', 'int', 'main', (((('decli', 'int', 'a', ('binop', '*', ('id', 'i'), 3)), ('arrdeciz', 'int', 'b', 3)), ('decli', 'int', 'c', 2)), ('asign', 'i', ('binop', '+', ('id', 'a'), ('id', 'c')))))), ('fun', 'int', 'test', ((('decli', 'int', 'c'), ('decli', 'int', 'd')), ('arrdeci', 'int', 'ar2', 3, ((0, ('id', 'i')), 2))))), ('fun', 'int', 't2', ('asign', 'i', 3)))
-
-
-
-
+import datetime
 #TODO
 # *OK - function call
 # *OK - conditional expressions
@@ -12,11 +8,11 @@ ast = ('unit', ('unit', ('unit', ('unit', ('decli', 'int', 'i', 0), ('arrdeci', 
 # *OK - local variables
 # *OK - gloabal variables
 # *OK - arrays
-# char variable
 # function recursion
 # function arguments
 # function return
 # asm("add $t0, $t1, $t2")
+# char variable
 
 registers = {
     #'at':0, 'v0':0, 'v1':0,
@@ -111,8 +107,6 @@ def gen_binop(op, p1, p2):
 functions = {}
 g_variables = {} 
 l_variables = {} 
-print(ast)
-print('parse ast')
 
 global_var = True
 global_fun_name = ''
@@ -158,7 +152,6 @@ def parse_ast(ast):
 
     if ast[0] == 'fun':
         global_var = False
-        print('fun')
         f_type = ast[1]
         f_name = ast[2]
         global_fun_name = f_name
@@ -189,7 +182,6 @@ def parse_ast(ast):
 
     if ast[0] == 'call':
         f_name = ast[1]
-        print('funtcion call', f_name)
         ins = list()
         ins.append('jal ' + f_name)
         return None, ins
@@ -278,7 +270,6 @@ def parse_ast(ast):
                 l_variables[global_fun_name][v_name] = (v_type, 1)
             stack  = get_stack_num(global_fun_name, v_name)
         if len(ast) > 3:
-            print('integer decleration with exp',global_fun_name,  global_var)
             v_exp = ast[3]
             if type(v_exp) == tuple:
                 re, inse = parse_ast(v_exp)
@@ -297,7 +288,6 @@ def parse_ast(ast):
                     inse.append('sw $'+r1+', '+str(stack)+'($sp)')
                 dealloc_reg(r1)
         else:
-            print('integer decleration ',global_fun_name,  global_var)
             if not global_var:
                 inse.append('sw $zero, '+str(stack)+'($sp)')
         return None, inse
@@ -318,7 +308,6 @@ def parse_ast(ast):
             else:
                 l_variables[global_fun_name][v_name] = (v_type, v_num)
             stack  = get_stack_num(global_fun_name, v_name)
-        print('arr decleration ',global_fun_name,  global_var)
         if not global_var:
             for i in range(int(v_num)):
                 inse.append('sw $zero, '+str(stack+i*4)+'($sp)')
@@ -338,7 +327,6 @@ def parse_ast(ast):
             else:
                 l_variables[global_fun_name][v_name] = (v_type, v_num)
             stack  = get_stack_num(global_fun_name, v_name)
-        print('arr decleration ',global_fun_name,  global_var)
         if not global_var:
             i = 0
             r, ins = parse_ast(v_list)
@@ -359,7 +347,6 @@ def parse_ast(ast):
         return None, inse
 
     elif ast[0] == 'asign':
-        print('var asign')
         v_name = ast[1]
         v_exp = ast[2]
         ins = list()
@@ -385,7 +372,6 @@ def parse_ast(ast):
         return None, ins
 
     elif ast[0] == 'id':
-        print('var access')
         v_name = ast[1]
         ins = list()
         r1 = alloc_reg()
@@ -397,7 +383,6 @@ def parse_ast(ast):
         return r1, ins
 
     elif ast[0] == 'binop':
-        print('binop')
         v_op = ast[1]
         v_e1 = ast[2]
         v_e2 = ast[3]
@@ -412,7 +397,6 @@ def parse_ast(ast):
         return r, ins1+ins2+ins
 
     elif ast[0] == 'id':
-        print('var access')
         v_name = ast[1]
         r1 = alloc_reg()
         ins = list()
@@ -426,40 +410,32 @@ def parse_ast(ast):
         print('unknown', ast)
     return ret;
 
+def parse(ast, asm):
+    ins = list()
+    v, ins = parse_ast(ast)
 
-ins = list()
-v, ins = parse_ast(ast)
+    i=0
+    ins.insert(i, '.data')
+    i = i+1
+    for var in g_variables:
+        ins.insert(i, var+': .word ' + g_variables[var][1])
+        i = i+1
 
-i=0
-ins.insert(i, '.data')
-i = i+1
-for var in g_variables:
-    ins.insert(i, var+': .word ' + g_variables[var][1])
+    ins.insert(i, '.text')
+    ins.append('')
     i = i+1
 
-ins.insert(i, '.text')
-ins.append('')
-i = i+1
+    if 'main' in functions:
+        for line in functions['main'][1]:
+            ins.append(line)
+        ins.append('')
 
-if 'main' in functions:
-    for line in functions['main'][1]:
-        ins.append(line)
-    ins.append('')
+    for f in functions:
+        if f == 'main': continue
+        for line in functions[f][1]:
+            ins.append(line)
+        ins.append('')
 
-for f in functions:
-    if f == 'main': continue
-    for line in functions[f][1]:
-        ins.append(line)
-    ins.append('')
-
-print(v, ins)
-asm = open('out.asm', "w+")
-for line in ins:
-    print(line, file=asm)
-
-print('global variables:')
-print(g_variables)
-print('local variables:')
-print(l_variables)
-print(functions)
-
+    print('# Generated at: '+str(datetime.datetime.now()), file=asm)
+    for line in ins:
+        print(line, file=asm)
