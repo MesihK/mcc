@@ -151,7 +151,10 @@ def p_statement_assign(p):
 def p_expression_list(p):
     '''expression_list : expression 
                        | expression_list ',' expression'''
-    p[0] = str(p[1])+','+str(p[3])
+    if len(p) >= 3:
+        p[0] = str(p[1])+','+str(p[3])
+    else:
+        p[0] = p[1]
 
 
 def p_expression_binop(p):
