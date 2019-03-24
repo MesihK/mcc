@@ -91,7 +91,7 @@ def p_file(p):
 
 def p_unit(p):
     '''unit : fun_def
-            | decleration'''
+            | decleration ";" '''
     p[0] = p[1]
 
 def p_statement_fun_def(p):
@@ -105,7 +105,7 @@ def p_statement_fun_call(p):
 
 def p_statement_expr(p):
     '''statement : expression ";"
-                 | decleration
+                 | decleration ";"
                  | fun_call
                  | compound_statement'''
     p[0] = p[1]
@@ -130,16 +130,16 @@ def p_statement_if_else_def(p):
     p[0] = ('ifelse', p[3], p[5], p[7])
 
 def p_statement_arr_def(p):
-    '''decleration : decleration_specifier ID "[" NUMBER "]" "=" "{" expression_list "}" ";"
-                   | decleration_specifier ID "[" NUMBER "]" ";" '''
+    '''decleration : decleration_specifier ID "[" NUMBER "]" "=" "{" expression_list "}"
+                   | decleration_specifier ID "[" NUMBER "]" '''
     if len(p) <= 7:
         p[0] = ('arrdeciz', p[1], p[2], p[4])
     else:
         p[0] = ('arrdeci', p[1], p[2], p[4], p[8])
 
 def p_statement_def(p):
-    '''decleration : decleration_specifier ID "=" expression ";"
-                   | decleration_specifier ID ";"'''
+    '''decleration : decleration_specifier ID "=" expression
+                   | decleration_specifier ID '''
     if len(p) >= 6:
         p[0] = ('decli', p[1], p[2], p[4])
     else:
