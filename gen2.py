@@ -1,8 +1,10 @@
-ast = ('unit', ('unit', ('decli', 'int', 'i', 0), ('fun', 'void', 'test', ('asign', 'i', ('binop', '+', ('id', 'i'), 1)))), ('fun', 'int', 'main', ((('call', 'test'), ('call', 'test')), ('asign', 'i', 5))))
+ast = ('unit', ('unit', ('decli', 'int', 'i', 0), ('fun', 'void', 'test', ('asign', 'i', ('binop', '+', ('id', 'i'), 1)))), ('fun', 'int', 'main', ('if', ('cond', '==', ('id', 'i'), 0), ('call', 'test'))))
 
 
 #TODO
 # *OK - function call
+# *OK - conditional expressions
+# *OK - if
 # if - else
 # while
 # local variables
@@ -40,6 +42,42 @@ def is_reg(r):
         return True
     else:
         return False
+
+lbl_cnt = 0
+def gen_lbl():
+    global lbl_cnt
+    lbl_cnt = lbl_cnt + 1
+    return 'lbl'+str(lbl_cnt)
+
+def gen_condop(op, p1, p2):
+    lbl_exit = gen_lbl()
+    ins = list()
+    if is_reg(p1): r2 = p1
+    else :
+        r2 = alloc_reg()
+        ins.append('li $'+r2+','+str(p1))
+
+    if is_reg(p2): r3 = p2
+    else :
+        r3 = alloc_reg()
+        ins.append('li $'+r3+','+str(p2))
+
+    if op == '==':
+        ins.append('bne $'+r2+', $'+r3+', '+lbl_exit)
+    elif op == '!=':
+        ins.append('beq $'+r2+', $'+r3+', '+lbl_exit)
+    elif op == '<':
+        ins.append('bge $'+r2+', $'+r3+', '+lbl_exit)
+    elif op == '>':
+        ins.append('ble $'+r2+', $'+r3+', '+lbl_exit)
+    elif op == '<=':
+        ins.append('bgt $'+r2+', $'+r3+', '+lbl_exit)
+    elif op == '>=':
+        ins.append('ble $'+r2+', $'+r3+', '+lbl_exit)
+
+    dealloc_reg(r2)
+    dealloc_reg(r3)
+    return lbl_exit, ins
 
 def gen_binop(op, p1, p2):
     ins = list()
@@ -104,8 +142,7 @@ def parse_ast(ast):
         if f_name is not 'main':
             insf.append('jr $ra')
         else:
-            insf.append('#prgoram finished call terminate')
-            insf.append('li $v0 10')
+            insf.append('li $v0 10 #prgoram finished call terminate')
             insf.append('syscall')
         functions[f_name] = r, ins+insf 
         return None, list()
@@ -116,6 +153,39 @@ def parse_ast(ast):
         ins = list()
         ins.append('jal ' + f_name)
         return None, ins
+
+    if ast[0] == 'cond':
+        v_op = ast[1]
+        v_e1 = ast[2]
+        v_e2 = ast[3]
+        ins1 = list()
+        ins2 = list()
+        if type(v_e1) == tuple:
+            v_e1, ins1 = parse_ast(v_e1)
+        if type(v_e2) == tuple:
+            v_e2, ins2 = parse_ast(v_e2)
+
+        lbl, ins = gen_condop(v_op, v_e1, v_e2)
+        return lbl, ins1+ins2+ins
+
+    if ast[0] == 'if':
+        if_exp = ast[1]
+        if_stmt = ast[2]
+        
+        ins = list()
+        ins_e = list()
+        ins_s = list()
+        if type(if_exp) == tuple:
+            lbl, ins_e = parse_ast(if_exp)
+        if type(if_stmt) == tuple:
+            r, ins_s = parse_ast(if_stmt)
+
+        ins = ins_e + ins_s
+        ins.append(lbl+':')
+        return None, ins
+
+    if ast[0] == 'ifelse':
+        return None, list()
 
     elif ast[0] == 'decli':
         inse = list()
