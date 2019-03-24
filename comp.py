@@ -95,12 +95,20 @@ def p_unit(p):
     p[0] = p[1]
 
 def p_statement_fun_def(p):
-    '''fun_def : decleration_specifier ID "(" ")" compound_statement'''
-    p[0] = ('fun', p[1], p[2], p[5])
+    '''fun_def : decleration_specifier ID "(" ")" compound_statement
+               | decleration_specifier ID "(" decleration_list ")" compound_statement'''
+    if len(p) >= 7:
+        p[0] = ('fune', p[1], p[2], p[4], p[6])
+    else:
+        p[0] = ('fun', p[1], p[2], p[5])
 
 def p_statement_fun_call(p):
-    'fun_call : ID "(" ")" ";" '
-    p[0] = ('call', p[1])
+    '''fun_call : ID "(" ")" ";"
+                | ID "(" expression_list ")" ";" '''
+    if len(p) > 4:
+        p[0] = ('calle', p[1], p[3])
+    else:
+        p[0] = ('call', p[1])
 
 
 def p_statement_expr(p):
@@ -157,6 +165,13 @@ def p_expression_list(p):
     else:
         p[0] = p[1]
 
+def p_decleration_list(p):
+    '''decleration_list : decleration
+                        | decleration_list ',' decleration'''
+    if len(p) >= 3:
+        p[0] = (p[1],  p[3])
+    else:
+        p[0] = p[1]
 
 def p_expression_binop(p):
     '''expression : expression '+' expression
