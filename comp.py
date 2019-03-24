@@ -149,9 +149,8 @@ def p_statement_assign(p):
     p[0] = ('asign', p[1], p[3])
 
 def p_expression_list(p):
-    '''expression_list : expression ',' expression 
-                       | expression_list ',' expression 
-                       | expression_list ',' expression_list '''
+    '''expression_list : expression 
+                       | expression_list ',' expression'''
     p[0] = str(p[1])+','+str(p[3])
 
 
