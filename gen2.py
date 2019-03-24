@@ -8,9 +8,9 @@ import datetime
 # *OK - local variables
 # *OK - gloabal variables
 # *OK - arrays
-# function recursion
 # function arguments
-# function return
+# *OK - function return
+# function recursion
 # asm("add $t0, $t1, $t2")
 # char variable
 
@@ -23,6 +23,15 @@ registers = {
     #'k0':0, 'k1':0,
     #'gp':0, 'sp':0, 'fp':0, 'ra':0
 }
+all_registers = {
+    'at':0, 'v0':0, 'v1':0,
+    'a0':0, 'a1':0, 'a2':0, 'a3':0,
+    't0':0, 't1':0, 't2':0, 't3':0, 't4':0, 't5':0, 't6':0, 't7':0,
+    's0':0, 's1':0, 's2':0, 's3':0, 's4':0, 's5':0, 's6':0, 's7':0,
+    't8':0, 't9':0, 't10':0,
+    'k0':0, 'k1':0,
+    'gp':0, 'sp':0, 'fp':0, 'ra':0
+}
 
 
 def alloc_reg():
@@ -32,11 +41,14 @@ def alloc_reg():
             return reg
 
 def dealloc_reg(r):
-    if registers[r] != 1: print('register', r, 'is not allocated!')
-    registers[r] = 0
+    if r not in registers:
+        if r not in all_registers:
+            Exception(r+' is not register!')
+    else:
+        registers[r] = 0
 
 def is_reg(r):
-    if r in registers:
+    if r in all_registers:
         return True
     else:
         return False
@@ -152,8 +164,8 @@ def parse_ast(ast):
 
     if ast[0] == 'fun':
         global_var = False
-        f_type = ast[1]
-        f_name = ast[2]
+        f_type = ast[1].strip()
+        f_name = ast[2].strip()
         global_fun_name = f_name
         f_stm = ast[3]
         ins = list()
@@ -172,7 +184,7 @@ def parse_ast(ast):
         insf.append('lw $ra, 0($sp)')
         #deallocate ra
         insf.append('addi $sp, $sp, '+str(tot_var*4))
-        if f_name is not 'main':
+        if f_name != 'main':
             insf.append('jr $ra')
         else:
             insf.append('li $v0 10 #prgoram finished call terminate')
@@ -184,7 +196,7 @@ def parse_ast(ast):
         f_name = ast[1]
         ins = list()
         ins.append('jal ' + f_name)
-        return None, ins
+        return 'v0', ins
 
     if ast[0] == 'cond':
         v_op = ast[1]
@@ -370,6 +382,24 @@ def parse_ast(ast):
                 ins.append('sw $'+r1+', '+str(stack)+'($sp)')
             dealloc_reg(r1)
         return None, ins
+
+    elif ast[0] == 'ret':
+        v_exp = ast[1]
+        ins = list()
+        if type(v_exp) == tuple:
+            v_exp, ins = parse_ast(v_exp)
+        if type(v_exp) == str:
+            ins.append('add $v0, $zero, $'+v_exp)
+            dealloc_reg(v_exp)
+        elif type(v_exp) == int:
+            r1 = alloc_reg()
+            ins.append('add $v0, $'+r1+', '+str(v_exp))
+            dealloc_reg(r1)
+        #get ra from stack
+        #append jr $ra
+        #unwind stack
+        #ins.append('jr $ra')
+        return 'v0', ins
 
     elif ast[0] == 'id':
         v_name = ast[1]
