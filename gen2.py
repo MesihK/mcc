@@ -10,9 +10,14 @@ import datetime
 # *OK - arrays
 # function arguments
 # *OK - function return
+# binop and or nor xor nand xnor
+# print by syscall
 # function recursion
 # asm("add $t0, $t1, $t2")
 # char variable
+# for loop
+# documentation
+# example programs
 
 registers = {
     #'at':0, 'v0':0, 'v1':0,

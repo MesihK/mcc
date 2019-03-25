@@ -2,10 +2,6 @@ import sys
 import gen2
 sys.path.insert(0, "../..")
 
-#TODO: construct AST 
-#TODO: construct AST resolver 
-#TODO: construct Embedded Actions 
-
 if sys.version_info[0] >= 3:
     raw_input = input
 
