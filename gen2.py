@@ -12,12 +12,15 @@ import datetime
 # *OK - function return
 # *OK - binop and or nor xor nand xnor
 # *OK - print by syscall
-# function recursion
+# *OK - function recursion
 # *OK - asm("add $t0, $t1, $t2")
 # char variable
-# for loop
+# *OK - for loop
 # continue
 # break
+# do while loop
+# switch - case
+# pointers
 # documentation
 # example programs
 
@@ -318,6 +321,34 @@ def parse_ast(ast):
         ins = ins + ins_e + ins_s
         ins.append('j '+lbl_start)
         ins.append(lbl_exit+':')
+        return None, ins
+
+    if ast[0] == 'for':
+        v_exp1 = ast[1]
+        v_exp2 = ast[2]
+        v_exp3 = ast[3]
+        v_stmt = ast[4]
+
+        ins = list()
+        ins_e1 = list()
+        ins_e2 = list()
+        ins_e3 = list()
+        ins_s = list()
+        if type(v_exp1) == tuple:
+            r, ins_e1 = parse_ast(v_exp1)
+        if type(v_exp2) == tuple:
+            lbl_exit, ins_e2 = parse_ast(v_exp2)
+        if type(v_exp3) == tuple:
+            r, ins_e3 = parse_ast(v_exp3)
+        if type(v_stmt) == tuple:
+            r, ins_s = parse_ast(v_stmt)
+        ins = ins_e1
+        lbl_start = gen_lbl()
+        ins.append(lbl_start+':')
+        ins = ins+ins_e2+ins_s+ins_e3
+        ins.append('j '+lbl_start)
+        ins.append(lbl_exit+':')
+
         return None, ins
 
     elif ast[0] == 'decli':
