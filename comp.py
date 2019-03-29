@@ -142,6 +142,14 @@ def p_statement_return(p):
     'statement : RETURN expression ";" '
     p[0] = ('ret', p[2])
 
+def p_statement_break(p):
+    'statement : BREAK ";" '
+    p[0] = ('break')
+
+def p_statement_continue(p):
+    'statement : CONTINUE ";" '
+    p[0] = ('continue')
+
 def p_statement_while_def(p):
     'statement : WHILE "(" expression ")" statement '
     p[0] = ('while', p[3], p[5])
