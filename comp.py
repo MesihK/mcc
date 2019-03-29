@@ -139,8 +139,12 @@ def p_decleration_specifier (p):
     p[0] = p[1]
 
 def p_statement_return(p):
-    'statement : RETURN expression ";" '
-    p[0] = ('ret', p[2])
+    '''statement : RETURN expression ";"
+                 | RETURN ";" '''
+    if len(p) >= 4:
+        p[0] = ('ret', p[2])
+    else:
+        p[0] = ('ret')
 
 def p_statement_break(p):
     'statement : BREAK ";" '
