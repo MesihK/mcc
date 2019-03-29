@@ -439,6 +439,39 @@ def parse_ast(ast):
 
         return None, ins
 
+    elif ast[0] == 'arrid':
+        v_name = ast[1]
+        v_ind = ast[2]
+        ins = list()
+        stack = 0
+        if not v_name in g_variables:
+            stack = get_stack_num(global_fun_name, v_name)
+            sp = 'sp'
+        else:
+            sp = alloc_reg()
+            ins.append('la $'+sp+', '+v_name)
+
+        if type(v_ind) == tuple:
+            v_ind, insi = parse_ast(v_exp)
+
+        if not is_reg(v_ind):
+            r_ind = alloc_reg()
+            ins.append('li $'+r_ind+','+str(v_ind))#add index of array
+            v_ind = r_ind
+        ins.append('add $'+v_ind+', $'+v_ind+', $'+v_ind)# double the index
+        ins.append('add $'+v_ind+', $'+v_ind+', $'+v_ind)# double the index
+        ins.append('add $'+v_ind+', $'+sp+', $'+v_ind)#add stack pointer
+        if not v_name in g_variables:
+            ins.append('addi $'+v_ind+', $'+v_ind+','+str(stack))#add index of array
+
+        r1 = alloc_reg()
+        ins.append('lw $'+r1+', ($'+v_ind+')')
+
+        dealloc_reg(v_ind)
+
+
+        return r1, ins
+
     elif ast[0] == 'ret':
         v_exp = ast[1]
         ins = list()
