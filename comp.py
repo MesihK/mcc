@@ -165,7 +165,7 @@ def p_statement_def(p):
         p[0] = ('decli', p[1], p[2])
 
 def p_statement_assign(p):
-    'statement : ID "=" expression ";"'
+    'expression : ID "=" expression'
     p[0] = ('asign', p[1], p[3])
 
 def p_expression_list(p):
