@@ -188,9 +188,15 @@ def p_expression_binop(p):
     '''expression : expression '+' expression
                   | expression '-' expression
                   | expression '*' expression
-                  | expression '/' expression'''
+                  | expression '/' expression
+                  | expression '&' expression
+                  | expression '|' expression
+                  | expression '^' expression'''
     p[0] = ('binop', p[2], p[1], p[3])
 
+def p_expression_not(p):
+    "expression : '~' expression %prec UMINUS"
+    p[0] = ('not', p[2])
 
 def p_expression_uminus(p):
     "expression : '-' expression %prec UMINUS"
