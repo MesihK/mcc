@@ -11,9 +11,9 @@ import datetime
 # *OK - function arguments
 # *OK - function return
 # binop and or nor xor nand xnor
-# print by syscall
+# *OK - print by syscall
 # function recursion
-# asm("add $t0, $t1, $t2")
+# *OK - asm("add $t0, $t1, $t2")
 # char variable
 # for loop
 # documentation
@@ -557,6 +557,11 @@ def parse_ast(ast):
             stack = get_stack_num(global_fun_name, v_name)
             ins.append('lw $'+r1+', '+str(stack)+'($sp)')
         return r1, ins
+    elif ast[0] == 'asm':
+        ins = list()
+        ins.append(ast[1].replace('"',''))
+        return None, ins
+
     else:
         print('unknown', ast)
     return ret;
