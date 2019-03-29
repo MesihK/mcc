@@ -124,6 +124,7 @@ def gen_binop(op, p1, p2):
 functions = {}
 g_variables = {} 
 l_variables = {} 
+s_variables = {}
 
 global_var = True
 global_fun_name = ''
@@ -562,6 +563,15 @@ def parse_ast(ast):
         ins.append(ast[1].replace('"',''))
         return None, ins
 
+    elif ast[0] == 'printstr':
+        lbl = gen_lbl()
+        s_variables[lbl] = ast[1]
+        ins = list()
+        ins.append('la $a0, '+lbl)
+        ins.append('li $v0, 4')
+        ins.append('syscall')
+        return None, ins
+
     else:
         print('unknown', ast)
     return ret;
@@ -570,9 +580,15 @@ def parse(ast, asm):
     ins = list()
     v, ins = parse_ast(ast)
 
+
     i=0
     ins.insert(i, '.data')
     i = i+1
+
+    for var in s_variables:
+        ins.insert(i, var+': .asciiz ' + s_variables[var])
+        i = i+1
+
     for var in g_variables:
         ins.insert(i, var+': .word ' + g_variables[var][1])
         i = i+1

@@ -1,4 +1,5 @@
 int main (){
+	printstr("Merhaba benim adim mesih");
 	print_char(read_char());
 	print_int(read_int());
 }
