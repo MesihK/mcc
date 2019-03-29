@@ -10,12 +10,14 @@ import datetime
 # *OK - arrays
 # *OK - function arguments
 # *OK - function return
-# binop and or nor xor nand xnor
+# *OK - binop and or nor xor nand xnor
 # *OK - print by syscall
 # function recursion
 # *OK - asm("add $t0, $t1, $t2")
 # char variable
 # for loop
+# continue
+# break
 # documentation
 # example programs
 
@@ -115,6 +117,12 @@ def gen_binop(op, p1, p2):
         ins.append('mul $'+r1+', $'+r2+', $'+r3)
     elif op == '/':
         ins.append('div $'+r1+', $'+r2+', $'+r3)
+    elif op == '&':
+        ins.append('and $'+r1+', $'+r2+', $'+r3)
+    elif op == '|':
+        ins.append('or $'+r1+', $'+r2+', $'+r3)
+    elif op == '^':
+        ins.append('xor $'+r1+', $'+r2+', $'+r3)
 
     dealloc_reg(r2)
     dealloc_reg(r3)
@@ -579,6 +587,28 @@ def parse_ast(ast):
         ins.append('li $v0, 4')
         ins.append('syscall')
         return None, ins
+
+    elif ast[0] == 'uminus':
+        v_exp = ast[1]
+        ins = list()
+        if type(v_exp) == tuple:
+            v_exp, ins = parse_ast(v_exp)
+        if type(v_exp) == int:
+            v_exp = -v_exp
+        elif is_reg(v_exp):
+            ins.append('sub $'+v_exp+', $zero, $'+v_exp)
+        return v_exp, ins
+
+    elif ast[0] == 'not':
+        v_exp = ast[1]
+        ins = list()
+        if type(v_exp) == tuple:
+            v_exp, ins = parse_ast(v_exp)
+        if type(v_exp) == int:
+            v_exp = ~v_exp
+        elif is_reg(v_exp):
+            ins.append('not $'+v_exp+', $'+v_exp)
+        return v_exp, ins
 
     else:
         print('unknown', ast)
