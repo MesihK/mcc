@@ -16,8 +16,8 @@ import datetime
 # *OK - asm("add $t0, $t1, $t2")
 # char variable
 # *OK - for loop
-# continue
-# break
+# *OK - continue
+# *OK - break
 # *OK - do while loop
 # switch - case
 # pointers
@@ -150,8 +150,21 @@ def get_stack_num(f_name, v_name):
 def parse_ast(ast):
     global global_var
     global global_fun_name
+
     if type(ast) == int:
         return ast, list()
+
+    elif type(ast) == str:
+        if ast == 'continue':
+            ins = list()
+            ins.append('j START')
+            return None, ins
+
+        if ast == 'break':
+            ins = list()
+            ins.append('j END')
+            return None, ins
+
     if type(ast[0]) == int:
         r, ins = parse_ast(ast[1])
         return (ast[0],r), ins
@@ -273,8 +286,7 @@ def parse_ast(ast):
         ins_s = list()
         if type(if_exp) == tuple:
             lbl, ins_e = parse_ast(if_exp)
-        if type(if_stmt) == tuple:
-            r, ins_s = parse_ast(if_stmt)
+        r, ins_s = parse_ast(if_stmt)
 
         ins = ins_e + ins_s
         ins.append(lbl+':')
@@ -292,11 +304,9 @@ def parse_ast(ast):
         lbl_e = gen_lbl()
         if type(if_exp) == tuple:
             lbl, ins_e = parse_ast(if_exp)
-        if type(if_stmt) == tuple:
-            r, ins_s = parse_ast(if_stmt)
-            ins_s.append('j '+lbl_e)
-        if type(else_stmt) == tuple:
-            r, ins_else = parse_ast(else_stmt)
+        r, ins_s = parse_ast(if_stmt)
+        ins_s.append('j '+lbl_e)
+        r, ins_else = parse_ast(else_stmt)
 
         ins = ins_e + ins_s
         ins.append(lbl+':')
@@ -318,6 +328,9 @@ def parse_ast(ast):
 
         lbl_start = gen_lbl()
         ins.append(lbl_start+':')
+        for index, item in enumerate(ins_s):
+            ins_s[index] = ins_s[index].replace('START', lbl_start)
+            ins_s[index] = ins_s[index].replace('END', lbl_exit)
         ins = ins + ins_e + ins_s
         ins.append('j '+lbl_start)
         ins.append(lbl_exit+':')
@@ -337,6 +350,9 @@ def parse_ast(ast):
 
         lbl_start = gen_lbl()
         ins.append(lbl_start+':')
+        for index, item in enumerate(ins_s):
+            ins_s[index] = ins_s[index].replace('START', lbl_start)
+            ins_s[index] = ins_s[index].replace('END', lbl_exit)
         ins = ins + ins_s + ins_e
         ins.append('j '+lbl_start)
         ins.append(lbl_exit+':')
@@ -364,6 +380,9 @@ def parse_ast(ast):
         ins = ins_e1
         lbl_start = gen_lbl()
         ins.append(lbl_start+':')
+        for index, item in enumerate(ins_s):
+            ins_s[index] = ins_s[index].replace('START', lbl_start)
+            ins_s[index] = ins_s[index].replace('END', lbl_exit)
         ins = ins+ins_e2+ins_s+ins_e3
         ins.append('j '+lbl_start)
         ins.append(lbl_exit+':')
