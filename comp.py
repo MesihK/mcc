@@ -12,7 +12,7 @@ reserved = (
     'AUTO', 'BREAK', 'CASE', 'CHAR', 'CONST', 'CONTINUE', 'DEFAULT', 'DO', 'DOUBLE',
     'ELSE', 'ENUM', 'EXTERN', 'FLOAT', 'FOR', 'GOTO', 'IF', 'INT', 'LONG', 'REGISTER',
     'RETURN', 'SHORT', 'SIGNED', 'SIZEOF', 'STATIC', 'STRUCT', 'SWITCH', 'TYPEDEF',
-    'UNION', 'UNSIGNED', 'VOID', 'VOLATILE', 'WHILE',
+    'UNION', 'UNSIGNED', 'VOID', 'VOLATILE', 'WHILE', 'ASM',
 )
 
 tokens = reserved + (
@@ -114,6 +114,11 @@ def p_statement_fun_call(p):
         p[0] = ('call', p[1], p[3])
     else:
         p[0] = ('call', p[1])
+
+def p_statement_asm_call(p):
+    '''expression : ASM "(" SCONST ")"'''
+    p[0] = (p[1], p[3])
+
 
 
 def p_decleration_specifier (p):
