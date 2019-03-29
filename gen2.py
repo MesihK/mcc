@@ -93,7 +93,7 @@ def gen_condop(op, p1, p2):
     elif op == '<=':
         ins.append('bgt $'+r2+', $'+r3+', '+lbl_exit)
     elif op == '>=':
-        ins.append('ble $'+r2+', $'+r3+', '+lbl_exit)
+        ins.append('blt $'+r2+', $'+r3+', '+lbl_exit)
 
     dealloc_reg(r2)
     dealloc_reg(r3)
