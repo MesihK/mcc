@@ -165,6 +165,14 @@ def parse_ast(ast):
             ins.append('j END')
             return None, ins
 
+        if ast == 'ret':
+            ins = list()
+            ins.append('lw $ra, 0($sp)')
+            ins.append('addi $sp, $sp, STACK')
+            if global_fun_name != 'main':
+                ins.append('jr $ra')
+            return None, ins
+
     if type(ast[0]) == int:
         r, ins = parse_ast(ast[1])
         return (ast[0],r), ins
