@@ -65,6 +65,13 @@ def t_newline(t):
     r'\n+'
     t.lexer.lineno += t.value.count("\n")
 
+def t_comment(t):
+    r'/\*(.|\n)*?\*/'
+    t.lexer.lineno += t.value.count('\n')
+
+def t_preprocessor(t):
+    r'\#(.)*?\n'
+    t.lexer.lineno += 1
 
 def t_error(t):
     print("Illegal character '%s'" % t.value[0])
@@ -151,7 +158,6 @@ def p_statement_if_def(p):
     'statement : IF "(" expression ")" statement '
     p[0] = ('if', p[3], p[5])
 
-
 def p_statement_if_else_def(p):
     'statement : IF "(" expression ")" statement ELSE statement '
     p[0] = ('ifelse', p[3], p[5], p[7])
@@ -225,7 +231,6 @@ def p_expression_arr_asign(p):
 def p_expression_number(p):
     "expression : NUMBER"
     p[0] = p[1]
-
 
 def p_expression_name(p):
     "expression : ID"
