@@ -147,7 +147,7 @@ def p_statement_arr_def(p):
 def p_statement_def(p):
     '''decleration : decleration_specifier ID "=" expression
                    | decleration_specifier ID '''
-    if len(p) >= 6:
+    if len(p) >= 5:
         p[0] = ('decli', p[1], p[2], p[4])
     else:
         p[0] = ('decli', p[1], p[2])
