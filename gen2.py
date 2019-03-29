@@ -388,6 +388,57 @@ def parse_ast(ast):
             dealloc_reg(r1)
         return None, ins
 
+    elif ast[0] == 'arrasign':
+        v_name = ast[1]
+        v_ind = ast[2]
+        v_exp = ast[3]
+        ins = list()
+        insi = list()
+        inse = list()
+        stack = 0
+        if not v_name in g_variables:
+            stack = get_stack_num(global_fun_name, v_name)
+            sp = 'sp'
+        else:
+            sp = alloc_reg()
+            ins.append('la $'+sp+', '+v_name)
+
+        if type(v_ind) == tuple:
+            v_ind, insi = parse_ast(v_exp)
+
+        #example global array access
+        #la $t3, list         # put address of list into $t3
+        #li $t2, 6            # put the index into $t2
+        #add $t2, $t2, $t2    # double the index
+        #add $t2, $t2, $t2    # double the index again (now 4x)
+        #add $t1, $t2, $t3    # combine the two components of the address
+        #lw $t4, 0($t1)       # get the value from the array cell
+
+        if not is_reg(v_ind):
+            r_ind = alloc_reg()
+            insi.append('li $'+r_ind+','+str(v_ind))#add index of array
+            v_ind = r_ind
+        insi.append('add $'+v_ind+', $'+v_ind+', $'+v_ind)# double the index
+        insi.append('add $'+v_ind+', $'+v_ind+', $'+v_ind)# double the index
+        insi.append('add $'+v_ind+', $'+sp+', $'+v_ind)#add stack pointer
+        if not v_name in g_variables:
+            insi.append('addi $'+v_ind+', $'+v_ind+','+str(stack))#add index of array
+
+        if type(v_exp) == tuple:
+            v_exp, inse = parse_ast(v_exp)
+        else:
+            r_exp = alloc_reg()
+            insi.append('li $'+r_exp+','+str(v_exp))#add index of array
+            v_exp = r_exp
+        inse.append('sw $'+v_exp+', ($'+v_ind+')')
+
+        dealloc_reg(v_ind)
+        dealloc_reg(v_exp)
+
+        ins += insi + inse
+
+        return None, ins
+
     elif ast[0] == 'ret':
         v_exp = ast[1]
         ins = list()
