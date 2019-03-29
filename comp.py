@@ -16,7 +16,7 @@ reserved = (
 )
 
 tokens = reserved + (
-    'ID', 'NUMBER', 
+    'ID', 'NUMBER', 'SCONST',
 
     # Operators (<<,>>, ||, &&, <=, >=, ==, !=)
     'LSHIFT', 'RSHIFT',
@@ -38,6 +38,9 @@ t_LE = r'<='
 t_GE = r'>='
 t_EQ = r'=='
 t_NE = r'!='
+
+# String literal
+t_SCONST = r'\"([^\\\n]|(\\.))*?\"'
 
 reserved_map = {}
 for r in reserved:
