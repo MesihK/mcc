@@ -139,6 +139,10 @@ def p_statement_while_def(p):
     'statement : WHILE "(" expression ")" statement '
     p[0] = ('while', p[3], p[5])
 
+def p_statement_dowhile_def(p):
+    'statement : DO statement WHILE "(" expression ")" ";" '
+    p[0] = ('dowhile', p[5], p[2])
+
 def p_statement_for_def(p):
     'statement : FOR "(" expression ";" expression ";" expression ")" statement '
     p[0] = ('for', p[3], p[5], p[7], p[9])
