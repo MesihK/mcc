@@ -197,6 +197,9 @@ def parse_ast(ast):
         if f_name in l_variables:
             for var in l_variables[f_name]:
                 tot_var += l_variables[f_name][var][1]
+
+        for index, item in enumerate(insf):
+            insf[index] = item.replace('STACK', str(tot_var*4))
         #allocate stack
         ins.append('addi $sp, $sp, -'+str(tot_var*4))
         #save ra
@@ -517,13 +520,11 @@ def parse_ast(ast):
             ins.append('add $v0, $zero, $'+v_exp)
             dealloc_reg(v_exp)
         elif type(v_exp) == int:
-            r1 = alloc_reg()
-            ins.append('add $v0, $'+r1+', '+str(v_exp))
-            dealloc_reg(r1)
-        #get ra from stack
-        #append jr $ra
-        #unwind stack
-        #ins.append('jr $ra')
+            ins.append('li $v0, '+str(v_exp))
+        ins.append('lw $ra, 0($sp)')
+        ins.append('addi $sp, $sp, STACK')
+        if global_fun_name != 'main':
+            ins.append('jr $ra')
         return 'v0', ins
 
     elif ast[0] == 'id':
