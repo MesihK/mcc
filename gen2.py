@@ -275,16 +275,19 @@ def parse_ast(ast):
         ins_e = list()
         ins_s = list()
         ins_else = list()
+        lbl_e = gen_lbl()
         if type(if_exp) == tuple:
             lbl, ins_e = parse_ast(if_exp)
         if type(if_stmt) == tuple:
             r, ins_s = parse_ast(if_stmt)
+            ins_s.append('j '+lbl_e)
         if type(else_stmt) == tuple:
             r, ins_else = parse_ast(else_stmt)
 
         ins = ins_e + ins_s
         ins.append(lbl+':')
         ins = ins + ins_else
+        ins.append(lbl_e+':')
         return None, ins
 
     if ast[0] == 'while':
