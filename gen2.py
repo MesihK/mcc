@@ -411,6 +411,10 @@ def parse_ast(ast):
             stack = get_stack_num(global_fun_name, v_name)
         if type(v_exp) == tuple:
             v_exp, ins = parse_ast(v_exp)
+            if type(v_exp) == int:
+                r1  = alloc_reg()
+                ins.append('li $'+r1+','+str(v_exp))
+                v_exp = r1
             if v_name in g_variables:
                 ins.append('sw $'+v_exp+', '+v_name)
             else:
