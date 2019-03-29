@@ -94,7 +94,7 @@ def p_statement_fun_def(p):
     '''fun_def : decleration_specifier ID "(" ")" compound_statement
                | decleration_specifier ID "(" decleration_list ")" compound_statement'''
     if len(p) >= 7:
-        p[0] = ('fune', p[1], p[2], p[4], p[6])
+        p[0] = ('fun', p[1], p[2], p[4], p[6])
     else:
         p[0] = ('fun', p[1], p[2], p[5])
 
@@ -108,7 +108,7 @@ def p_statement_fun_call(p):
     '''expression : ID "(" ")"
                   | ID "(" expression_list ")" '''
     if len(p) > 4:
-        p[0] = ('calle', p[1], p[3])
+        p[0] = ('call', p[1], p[3])
     else:
         p[0] = ('call', p[1])
 

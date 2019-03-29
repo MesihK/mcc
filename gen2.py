@@ -8,7 +8,7 @@ import datetime
 # *OK - local variables
 # *OK - gloabal variables
 # *OK - arrays
-# function arguments
+# *OK - function arguments
 # *OK - function return
 # binop and or nor xor nand xnor
 # print by syscall
@@ -172,9 +172,24 @@ def parse_ast(ast):
         f_type = ast[1].strip()
         f_name = ast[2].strip()
         global_fun_name = f_name
-        f_stm = ast[3]
+        has_arg = False
+        if len(ast) > 4:
+            has_arg = True
+            f_arg = ast[3]
+            f_stm = ast[4]
+        else:
+            f_stm = ast[3]
         ins = list()
         ins.append(f_name+':')
+        insa = list()
+        arg_cnt = 0
+        if has_arg:
+            r, insa = parse_ast(f_arg)
+            if f_name in l_variables:
+                for var in l_variables[f_name]:
+                    arg_cnt += l_variables[f_name][var][1]
+            if arg_cnt > 8:
+                print('To many argumnets in function: '+f_name)
         r, insf = parse_ast(f_stm)
         #compute total stack area needed
         tot_var = 1
@@ -185,6 +200,10 @@ def parse_ast(ast):
         ins.append('addi $sp, $sp, -'+str(tot_var*4))
         #save ra
         ins.append('sw $ra, 0($sp)')
+        #load arguments
+        if has_arg:
+            for i in range(arg_cnt):
+                insa.append('sw $a'+str(i)+', '+str(4+i*4)+'($sp)')
         #load ra
         insf.append('lw $ra, 0($sp)')
         #deallocate ra
@@ -194,12 +213,25 @@ def parse_ast(ast):
         else:
             insf.append('li $v0 10 #prgoram finished call terminate')
             insf.append('syscall')
-        functions[f_name] = r, ins+insf 
+        functions[f_name] = r, ins+insa+insf
         return None, list()
 
     if ast[0] == 'call':
         f_name = ast[1]
         ins = list()
+
+        if len(ast) > 2:
+            f_arg = ast[2]
+            r, ins = parse_ast(f_arg)
+            arg_list = str(r).replace("'",'').replace(' ','').replace('(','').replace(')','').split(',')
+            arg_cnt = 0;
+            for a in arg_list:
+                if is_reg(a):
+                    ins.append('add $a'+str(arg_cnt)+' $zero, $'+a)
+                else:
+                    ins.append('li $a'+str(arg_cnt)+' '+a)
+                arg_cnt += 1
+
         ins.append('jal ' + f_name)
         return 'v0', ins
 
