@@ -18,7 +18,7 @@ import datetime
 # *OK - for loop
 # continue
 # break
-# do while loop
+# *OK - do while loop
 # switch - case
 # pointers
 # documentation
@@ -319,6 +319,25 @@ def parse_ast(ast):
         lbl_start = gen_lbl()
         ins.append(lbl_start+':')
         ins = ins + ins_e + ins_s
+        ins.append('j '+lbl_start)
+        ins.append(lbl_exit+':')
+        return None, ins
+
+    if ast[0] == 'dowhile':
+        w_exp = ast[1]
+        w_stmt = ast[2]
+
+        ins = list()
+        ins_e = list()
+        ins_s = list()
+        if type(w_exp) == tuple:
+            lbl_exit, ins_e = parse_ast(w_exp)
+        if type(w_stmt) == tuple:
+            r, ins_s = parse_ast(w_stmt)
+
+        lbl_start = gen_lbl()
+        ins.append(lbl_start+':')
+        ins = ins + ins_s + ins_e
         ins.append('j '+lbl_start)
         ins.append(lbl_exit+':')
         return None, ins
