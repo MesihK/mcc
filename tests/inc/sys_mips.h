@@ -1,4 +1,4 @@
-void print_char(int a){
+void print_char(char a){
 	asm("li $v0 11");
 	asm("syscall");
 }
