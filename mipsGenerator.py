@@ -49,11 +49,12 @@ def alloc_reg():
         if(registers[reg] == 0):
             registers[reg] = 1
             return reg
+    raise Exception('Not enough register')
 
 def dealloc_reg(r):
     if r not in registers:
         if r not in all_registers:
-            Exception(r+' is not register!')
+            raise Exception(r+' is not register!')
     else:
         registers[r] = 0
 
@@ -631,7 +632,7 @@ def parse_ast(ast):
 
     elif ast[0] == 'char':
         if "'" not in ast[1]:
-            Exception('char type error:'+ast[1])
+            raise Exception('char type error:'+ast[1])
         return ord(ast[1].replace("'",'')), list()
 
     elif ast[0] == 'binop':
