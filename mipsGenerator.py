@@ -414,10 +414,12 @@ def parse_ast(ast):
             v_exp = ast[3]
             if type(v_exp) == tuple:
                 re, inse = parse_ast(v_exp)
+                v_exp = re
+            if is_reg(v_exp):
                 if global_var:
-                    inse.append('sw $'+re+','+v_name)
+                    inse.append('sw $'+v_exp+','+v_name)
                 else:
-                    inse.append('sw $'+re+', '+str(stack)+'($sp)')
+                    inse.append('sw $'+v_exp+', '+str(stack)+'($sp)')
                 dealloc_reg(re)
             else:
                 r1 = alloc_reg()
