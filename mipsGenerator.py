@@ -102,6 +102,32 @@ def gen_condop(op, p1, p2):
 
 def gen_binop(op, p1, p2):
     ins = list()
+    if op != '*' and op != '/':
+        if is_reg(p1) and not is_reg(p2):
+            if op == '+':
+                ins.append('addi $'+p1+', $'+p1+', '+str(p2))
+            elif op == '-':
+                ins.append('subi $'+p1+', $'+p1+', '+str(p2))
+            elif op == '&':
+                ins.append('andi $'+p1+', $'+p1+', '+str(p2))
+            elif op == '|':
+                ins.append('ori $'+p1+', $'+p1+', '+str(p2))
+            elif op == '^':
+                ins.append('xori $'+p1+', $'+p1+', '+str(p2))
+            return p1, ins
+        if not is_reg(p1) and is_reg(p2):
+            if op == '+':
+                ins.append('addi $'+p2+', $'+p2+', '+str(p1))
+            elif op == '-':
+                ins.append('subi $'+p2+', $'+p2+', -'+str(p1))
+            elif op == '&':
+                ins.append('andi $'+p2+', $'+p2+', '+str(p1))
+            elif op == '|':
+                ins.append('ori $'+p2+', $'+p2+', '+str(p1))
+            elif op == '^':
+                ins.append('xori $'+p2+', $'+p2+', '+str(p1))
+            return p1, ins
+
     r1 = alloc_reg()
     if is_reg(p1): r2 = p1
     else :
