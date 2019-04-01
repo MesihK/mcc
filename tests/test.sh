@@ -1,4 +1,8 @@
 #!/bin/sh
+
+#TODO
+#add colors
+
 mars=~/Downloads/Mars4_5.jar
 
 rm asm_* 2>/dev/null

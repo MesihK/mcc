@@ -61,6 +61,9 @@ int read_int(){ asm("li $v0 5"); asm("syscall"); }
 
 some basic test codes:
 * arr-dec.c
+* arr-op.c
+* arr-print.c
+* binop2.c
 * binop.c
 * char.c
 * conditions.c
@@ -70,6 +73,7 @@ some basic test codes:
 * if.c
 * if-else.c
 * int-dec.c
+* merge-sort.c
 * recursion.c
 * return.c
 * while.c

@@ -1,4 +1,5 @@
 #include<stdio.h>
+#include<stdlib.h>
 
 void printstr(char *str){
 	printf("%s", str);
