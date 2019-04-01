@@ -1,5 +1,5 @@
 import sys
-import gen2
+import mipsGenerator
 
 sys.path.insert(0, "../..")
 
@@ -293,5 +293,5 @@ fast = open('ast', 'w')
 fast.write(str(ast))
 asm = open(sys.argv[2], 'w+')
 asm.write('# Generated from: ' + sys.argv[1]+'\n')
-gen2.parse(ast, asm)
+mipsGenerator.parse(ast, asm)
 
