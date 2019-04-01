@@ -1,6 +1,8 @@
 #!/bin/sh
 mars=~/Downloads/Mars4_5.jar
 
+rm asm_* 2>/dev/null
+
 for f in *.c
 do
 	gcc -I inc $f 
