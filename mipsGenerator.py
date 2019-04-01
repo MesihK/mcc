@@ -610,6 +610,7 @@ def parse_ast(ast):
 
         if type(v_ind) == tuple:
             v_ind, insi = parse_ast(v_ind)
+            ins += insi
 
         if not is_reg(v_ind):
             r_ind = alloc_reg()
