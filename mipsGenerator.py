@@ -126,7 +126,7 @@ def gen_binop(op, p1, p2):
                 ins.append('ori $'+p2+', $'+p2+', '+str(p1))
             elif op == '^':
                 ins.append('xori $'+p2+', $'+p2+', '+str(p1))
-            return p1, ins
+            return p2, ins
 
     r1 = alloc_reg()
     if is_reg(p1): r2 = p1
