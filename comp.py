@@ -1,5 +1,6 @@
 import sys
 import gen2
+
 sys.path.insert(0, "../..")
 
 if sys.version_info[0] >= 3:
@@ -289,8 +290,8 @@ yacc.yacc()
 
 ast = yacc.parse(c.read())
 fast = open('ast', 'w')
-print(ast, file=fast)
+fast.write(str(ast))
 asm = open(sys.argv[2], 'w+')
-print('# Generated from: ' + sys.argv[1], file=asm)
+asm.write('# Generated from: ' + sys.argv[1]+'\n')
 gen2.parse(ast, asm)
 

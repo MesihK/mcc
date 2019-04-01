@@ -723,6 +723,6 @@ def parse(ast, asm):
             ins.append(line)
         ins.append('')
 
-    print('# Generated at: '+str(datetime.datetime.now()), file=asm)
+    asm.write('# Generated at: '+str(datetime.datetime.now())+'\n')
     for line in ins:
-        print(line, file=asm)
+        asm.write(line+'\n')
