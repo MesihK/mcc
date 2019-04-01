@@ -63,6 +63,7 @@ some basic test codes:
 * arr-dec.c
 * arr-op.c
 * arr-print.c
+* binary-search.c
 * binop2.c
 * binop.c
 * char.c
