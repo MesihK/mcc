@@ -8,7 +8,7 @@ do
 	gcc -I inc $f 
 	cp $f "asm_$f"
 	cat inc/sys_mips.h >> "asm_$f"
-	python ../comp.py "asm_$f" out.asm
+	python ../mcc "asm_$f" out.asm
 	rm ast
 	asm=$(java -jar $mars out.asm | tail -n +3 )
 	ccom=$(./a.out)
