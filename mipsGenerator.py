@@ -627,6 +627,11 @@ def parse_ast(ast):
             ins.append('lw $'+r1+', '+str(stack)+'($sp)')
         return r1, ins
 
+    elif ast[0] == 'char':
+        if "'" not in ast[1]:
+            Exception('char type error:'+ast[1])
+        return ord(ast[1].replace("'",'')), list()
+
     elif ast[0] == 'binop':
         v_op = ast[1]
         v_e1 = ast[2]
