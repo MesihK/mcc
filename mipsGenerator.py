@@ -535,7 +535,7 @@ def parse_ast(ast):
             ins.append('la $'+sp+', '+v_name)
 
         if type(v_ind) == tuple:
-            v_ind, insi = parse_ast(v_exp)
+            v_ind, insi = parse_ast(v_ind)
 
         #example global array access
         #la $t3, list         # put address of list into $t3
@@ -583,7 +583,7 @@ def parse_ast(ast):
             ins.append('la $'+sp+', '+v_name)
 
         if type(v_ind) == tuple:
-            v_ind, insi = parse_ast(v_exp)
+            v_ind, insi = parse_ast(v_ind)
 
         if not is_reg(v_ind):
             r_ind = alloc_reg()
