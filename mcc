@@ -19,7 +19,7 @@ reserved = (
 )
 
 tokens = reserved + (
-    'ID', 'NUMBER', 'SCONST',
+    'ID', 'NUMBER', 'SCONST', 'CCONST',
 
     # Operators (<<,>>, ||, &&, <=, >=, ==, !=)
     'LSHIFT', 'RSHIFT',
@@ -44,6 +44,9 @@ t_NE = r'!='
 
 # String literal
 t_SCONST = r'\"([^\\\n]|(\\.))*?\"'
+
+# Character constant 'c' or L'c'
+t_CCONST = r'(L)?\'([^\\\n]|(\\.))*?\''
 
 reserved_map = {}
 for r in reserved:
@@ -250,6 +253,11 @@ def p_expression_number(p):
 def p_expression_name(p):
     "expression : ID"
     p[0] = ('id', p[1])
+
+def p_expression_char(p):
+    "expression : CCONST"
+    p[0] = ('char', p[1])
+
 
 def p_cond_exp(p):
     '''expression : eq_exp'''
