@@ -250,7 +250,7 @@ def parse_ast(ast):
             if f_name in l_variables:
                 for var in l_variables[f_name]:
                     arg_cnt += l_variables[f_name][var][1]
-            if arg_cnt > 8:
+            if arg_cnt > 4:
                 print('To many argumnets in function: '+f_name)
         r, insf = parse_ast(f_stm)
         #compute total stack area needed
