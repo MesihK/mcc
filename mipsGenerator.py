@@ -30,7 +30,7 @@ registers = {
     't0':0, 't1':0, 't2':0, 't3':0, 't4':0, 't5':0, 't6':0, 't7':0,
     's0':0, 's1':0, 's2':0, 's3':0, 's4':0, 's5':0, 's6':0, 's7':0,
     't8':0, 't9':0,
-    #'k0':0, 'k1':0,
+    'k0':0, 'k1':0,
     #'gp':0, 'sp':0, 'fp':0, 'ra':0
 }
 all_registers = {
@@ -622,13 +622,8 @@ def parse_ast(ast):
         if not v_name in g_variables:
             ins.append('addi $'+v_ind+', $'+v_ind+','+str(stack))#add index of array
 
-        r1 = alloc_reg()
-        ins.append('lw $'+r1+', ($'+v_ind+')')
-
-        dealloc_reg(v_ind)
-
-
-        return r1, ins
+        ins.append('lw $'+v_ind+', ($'+v_ind+')')
+        return v_ind, ins
 
     elif ast[0] == 'ret':
         v_exp = ast[1]
