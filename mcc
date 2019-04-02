@@ -141,8 +141,13 @@ def p_statement_str_call(p):
 def p_decleration_specifier (p):
     '''decleration_specifier : VOID
                              | INT
-                             | CHAR'''
-    p[0] = p[1]
+                             | CHAR
+                             | INT pointer
+                             | CHAR pointer '''
+    if len(p) >= 3:
+        p[0] = (p[1],p[2])
+    else:
+        p[0] = p[1]
 
 def p_statement_return(p):
     '''statement : RETURN expression ";"
@@ -195,6 +200,14 @@ def p_statement_def(p):
         p[0] = ('decli', p[1], p[2], p[4])
     else:
         p[0] = ('decli', p[1], p[2])
+
+#def p_statement_pointer_def(p):
+#    '''decleration : decleration_specifier pointer ID "=" expression
+#                   | decleration_specifier pointer ID '''
+#    if len(p) >= 6:
+#        p[0] = ('pdecli', p[1], p[3], p[5])
+#    else:
+#        p[0] = ('pdecli', p[1], p[3])
 
 def p_statement_assign(p):
     'expression : ID "=" expression'
@@ -254,10 +267,33 @@ def p_expression_name(p):
     "expression : ID"
     p[0] = ('id', p[1])
 
+def p_expression_address(p):
+    "expression : '&' ID"
+    p[0] = ('address', p[2])
+
+def p_expression_arr_address(p):
+    "expression : '&' ID '[' expression ']' "
+    p[0] = ('arraddress', p[2], p[4])
+
+def p_statement_ptr_asign(p):
+    'expression : "*" ID "=" expression'
+    p[0] = ('pasign', p[2], p[4])
+
+def p_expression_pointer_access(p):
+    "expression : '*' ID"
+    p[0] = ('paccess', p[2])
+
+def p_expression_pointer(p):
+    '''pointer : '*'
+               | pointer '*' '''
+    if len(p) >= 3:
+        p[0] = (p[1], p[2])
+    else:
+        p[0] = p[1]
+
 def p_expression_char(p):
     "expression : CCONST"
     p[0] = ('char', p[1])
-
 
 def p_cond_exp(p):
     '''expression : eq_exp'''
@@ -291,7 +327,7 @@ def p_statement_list(p):
 
 def p_error(p):
     if p:
-        print("Syntax error at '%s'" % p.value)
+        print("Syntax error at '%s' line '%s'" % p.value % p.line)
     else:
         print("Syntax error at EOF")
 
