@@ -14,15 +14,17 @@ import datetime
 # *OK - print by syscall
 # *OK - function recursion
 # *OK - asm("add $t0, $t1, $t2")
-# char variable
+# *OK - char variable
 # *OK - for loop
 # *OK - continue
 # *OK - break
 # *OK - do while loop
 # switch - case
-# pointers
+# *OK - pointers
+# pointer increment
+# *p = arr; expression. direct access to address of array
 # documentation
-# example programs
+# *OK - example programs
 
 registers = {
     #'at':0, 'v0':0, 'v1':0,
@@ -642,6 +644,7 @@ def parse_ast(ast):
         return 'v0', ins
 
     elif ast[0] == 'id':
+        #TODO if id is array return it's address
         v_name = ast[1]
         ins = list()
         r1 = alloc_reg()
@@ -717,9 +720,99 @@ def parse_ast(ast):
             ins.append('not $'+v_exp+', $'+v_exp)
         return v_exp, ins
 
-    else:
-        print('unknown', ast)
-    return ret;
+    elif ast[0] == 'address':
+        v_name = ast[1]
+        ins = list()
+        r1 = alloc_reg()
+        if v_name in g_variables:
+            ins.append('la $'+r1+','+v_name)
+        else:
+            stack = get_stack_num(global_fun_name, v_name)
+            ins.append('addi $'+r1+', $sp, '+str(stack))
+        return r1, ins
+    elif ast[0] == 'arraddress':
+        v_name = ast[1]
+        v_ind = ast[2]
+        ins = list()
+        stack = 0
+        if not v_name in g_variables:
+            stack = get_stack_num(global_fun_name, v_name)
+            sp = 'sp'
+        else:
+            sp = alloc_reg()
+            ins.append('la $'+sp+', '+v_name)
+
+        if type(v_ind) == tuple:
+            v_ind, insi = parse_ast(v_ind)
+            ins += insi
+
+        if not is_reg(v_ind):
+            r_ind = alloc_reg()
+            ins.append('li $'+r_ind+','+str(v_ind))#add index of array
+            v_ind = r_ind
+        ins.append('add $'+v_ind+', $'+v_ind+', $'+v_ind)# double the index
+        ins.append('add $'+v_ind+', $'+v_ind+', $'+v_ind)# double the index
+        ins.append('add $'+v_ind+', $'+sp+', $'+v_ind)#add stack pointer
+        if not v_name in g_variables:
+            ins.append('addi $'+v_ind+', $'+v_ind+','+str(stack))#add index of array
+
+        return v_ind, ins
+
+    elif ast[0] == 'paccess':
+        v_name = ast[1]
+        ins = list()
+        r1 = alloc_reg()
+        if v_name in g_variables:
+            ins.append('lw $'+r1+','+v_name)
+            ins.append('lw $'+r1+', ($'+r1+')')
+        else:
+            stack = get_stack_num(global_fun_name, v_name)
+            ins.append('lw $'+r1+', '+str(stack)+'($sp)')
+            ins.append('lw $'+r1+', ($'+r1+')')
+        return r1, ins
+
+    elif ast[0] == 'pasign':
+        v_name = ast[1]
+        v_exp = ast[2]
+        ins = list()
+        stack = 0
+        if not v_name in g_variables:
+            stack = get_stack_num(global_fun_name, v_name)
+        if type(v_exp) == tuple:
+            v_exp, ins = parse_ast(v_exp)
+            if type(v_exp) == int:
+                r1  = alloc_reg()
+                ins.append('li $'+r1+','+str(v_exp))
+                v_exp = r1
+            if v_name in g_variables:
+                r2  = alloc_reg()
+                ins.append('lw $'+r2+','+v_name)
+                ins.append('sw $'+v_exp+', ($'+r2+')')
+                dealloc_reg(r2)
+            else:
+                r2  = alloc_reg()
+                ins.append('lw $'+r2+', '+str(stack)+'($sp)')
+                ins.append('sw $'+v_exp+', ($'+r2+')')
+                dealloc_reg(r2)
+            dealloc_reg(v_exp)
+        else:
+            r1 = alloc_reg()
+            if v_name in g_variables:
+                r2  = alloc_reg()
+                ins.append('li $'+r1+','+str(v_exp))
+                ins.append('lw $'+r2+','+v_name)
+                ins.append('sw $'+r1+', ($'+r2+')')
+                dealloc_reg(r2)
+            else:
+                r2  = alloc_reg()
+                ins.append('li $'+r1+','+str(v_exp))
+                ins.append('lw $'+r2+', '+str(stack)+'($sp)')
+                ins.append('sw $'+r1+', ($'+r2+')')
+                dealloc_reg(r2)
+            dealloc_reg(r1)
+        return None, ins
+
+    raise Exception('Unknown AST:', ast)
 
 def parse(ast, asm):
     ins = list()
