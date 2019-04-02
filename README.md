@@ -11,7 +11,7 @@ Tested with:
 
 It consist of 2 python source code. 
 First one is `mcc`. Mcc is lexer and parser that is written by ply. 
-It generates abstract syntax tree of given C code.
+It also generates abstract syntax tree of given C code.
 Second one is `mipsGenerator.py`. 
 This code parses abstract syntax tree and generates assembly code.
 
@@ -19,7 +19,7 @@ This project is written for CSE531 at Gebze Technical University.
 
 ## Features
 
-Here is list of supported futures:
+Here is the list of supported futures:
 
 - [x] Global - Local variables 
 - [x] Int - Char variables
@@ -36,7 +36,22 @@ Here is list of supported futures:
 - [x] asm("asm op") 
 - [x] printstr("some string") 
 - [x] conditional operations ( ==, !=, >=, <=, >, < )
-- [ ] Group of conditional operations ( 3 == 2 | 3 !=5 )
+- [x] pointer decleration, asign access
+
+## Not Supported Features
+
+Here is the list of not supported futures:
+
+- [ ] Group of conditional operations ( 3 == 2 || 3 !=5 )
+- [ ] Floating point numbers.
+- [ ] C preprocessing
+- [ ] ++ -- operations
+- [ ] += -= operations
+- [ ] structs
+- [ ] enums
+- [ ] function pointers
+- [ ] // comments
+- [ ] switch - case
 
 ## Test Framework
 
@@ -59,11 +74,11 @@ int read_char(){ asm("li $v0 12"); asm("syscall"); }
 int read_int(){ asm("li $v0 5"); asm("syscall"); }
 ```
 
-some basic test codes:
+Some basic test codes:
+
 * arr-dec.c
 * arr-op.c
 * arr-print.c
-* binary-search.c
 * binop2.c
 * binop.c
 * char.c
@@ -74,10 +89,16 @@ some basic test codes:
 * if.c
 * if-else.c
 * int-dec.c
-* merge-sort.c
+* pointer.c
 * recursion.c
 * return.c
 * while.c
+
+Some example codes:
+
+* binary-search.c
+* merge-sort.c
+* quick-sort.c
 
 whic is compiled using both `gcc` and `mcc` and output compared between two
 
