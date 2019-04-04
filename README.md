@@ -100,6 +100,8 @@ Some example codes:
 * merge-sort.c
 * quick-sort.c
 
+Compiled ASM output of examples can be found at examples folder.
+
 whic is compiled using both `gcc` and `mcc` and output compared between two
 
 Test can be run with using `tests/test.sh`.
