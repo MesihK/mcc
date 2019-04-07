@@ -37,6 +37,9 @@ Here is the list of supported futures:
 - [x] printstr("some string") 
 - [x] conditional operations ( ==, !=, >=, <=, >, < )
 - [x] pointer decleration, asign access
+- [x] ++ -- operations
+- [x] += -= *= /= |= &= ^= operations
+- [x] // comments
 
 ## Not Supported Features
 
@@ -45,12 +48,9 @@ Here is the list of not supported futures:
 - [ ] Group of conditional operations ( 3 == 2 || 3 !=5 )
 - [ ] Floating point numbers.
 - [ ] C preprocessing
-- [ ] ++ -- operations
-- [ ] += -= operations
 - [ ] structs
 - [ ] enums
 - [ ] function pointers
-- [ ] // comments
 - [ ] switch - case
 
 ## Test Framework
@@ -100,11 +100,17 @@ Some example codes:
 * merge-sort.c
 * quick-sort.c
 
-Compiled ASM output of examples can be found at examples folder.
-
 whic is compiled using both `gcc` and `mcc` and output compared between two
 
 Test can be run with using `tests/test.sh`.
 Please change `Mars4.5` location inside script.
+
+## Examples
+
+Compiled ASM output of examples can be found at examples folder.
+
+### To Run Examples
+
+`java -jar ~/Downloads/Mars4_5.jar hanoi.asm`
 
 
