@@ -60,6 +60,16 @@ def dealloc_reg(r):
     else:
         registers[r] = 0
 
+def dealloc_reg_tupple(r):
+    if r is None: return
+    if type(r) is str:
+        if is_reg(r): 
+            dealloc_reg(r)
+            return
+    reg_list = str(r).replace("'",'').replace(' ','').replace('(','').replace(')','').split(',')
+    for reg in reg_list:
+        if is_reg(reg): dealloc_reg(reg)
+
 def is_reg(r):
     if r in all_registers:
         return True
@@ -225,8 +235,10 @@ def parse_ast(ast):
         ins2 = list()
         if type(v_e1) == tuple:
             v_e1, ins1 = parse_ast(v_e1)
+            dealloc_reg_tupple(v_e1)
         if type(v_e2) == tuple:
             v_e2, ins2 = parse_ast(v_e2)
+            dealloc_reg_tupple(v_e2)
         return None, ins1+ins2
 
     if ast[0] == 'fun':
@@ -247,12 +259,14 @@ def parse_ast(ast):
         arg_cnt = 0
         if has_arg:
             r, insa = parse_ast(f_arg)
+            dealloc_reg_tupple(r)
             if f_name in l_variables:
                 for var in l_variables[f_name]:
                     arg_cnt += l_variables[f_name][var][1]
             if arg_cnt > 4:
                 print('To many argumnets in function: '+f_name)
         r, insf = parse_ast(f_stm)
+        dealloc_reg_tupple(r)
         #compute total stack area needed
         tot_var = 1
         if f_name in l_variables:
@@ -288,11 +302,13 @@ def parse_ast(ast):
         if len(ast) > 2:
             f_arg = ast[2]
             r, ins = parse_ast(f_arg)
+
             arg_list = str(r).replace("'",'').replace(' ','').replace('(','').replace(')','').split(',')
             arg_cnt = 0;
             for a in arg_list:
                 if is_reg(a):
                     ins.append('add $a'+str(arg_cnt)+' $zero, $'+a)
+                    dealloc_reg(a)
                 else:
                     ins.append('li $a'+str(arg_cnt)+' '+a)
                 arg_cnt += 1
@@ -324,6 +340,7 @@ def parse_ast(ast):
         if type(if_exp) == tuple:
             lbl, ins_e = parse_ast(if_exp)
         r, ins_s = parse_ast(if_stmt)
+        dealloc_reg_tupple(r)
 
         ins = ins_e + ins_s
         ins.append(lbl+':')
@@ -342,8 +359,10 @@ def parse_ast(ast):
         if type(if_exp) == tuple:
             lbl, ins_e = parse_ast(if_exp)
         r, ins_s = parse_ast(if_stmt)
+        dealloc_reg_tupple(r)
         ins_s.append('j '+lbl_e)
         r, ins_else = parse_ast(else_stmt)
+        dealloc_reg_tupple(r)
 
         ins = ins_e + ins_s
         ins.append(lbl+':')
@@ -362,6 +381,7 @@ def parse_ast(ast):
             lbl_exit, ins_e = parse_ast(w_exp)
         if type(w_stmt) == tuple:
             r, ins_s = parse_ast(w_stmt)
+            dealloc_reg_tupple(r)
 
         lbl_start = gen_lbl()
         ins.append(lbl_start+':')
@@ -384,6 +404,8 @@ def parse_ast(ast):
             lbl_exit, ins_e = parse_ast(w_exp)
         if type(w_stmt) == tuple:
             r, ins_s = parse_ast(w_stmt)
+            dealloc_reg_tupple(r)
+            dealloc_reg_tupple(r)
 
         lbl_start = gen_lbl()
         ins.append(lbl_start+':')
@@ -408,12 +430,15 @@ def parse_ast(ast):
         ins_s = list()
         if type(v_exp1) == tuple:
             r, ins_e1 = parse_ast(v_exp1)
+            dealloc_reg_tupple(r)
         if type(v_exp2) == tuple:
             lbl_exit, ins_e2 = parse_ast(v_exp2)
         if type(v_exp3) == tuple:
             r, ins_e3 = parse_ast(v_exp3)
+            dealloc_reg_tupple(r)
         if type(v_stmt) == tuple:
             r, ins_s = parse_ast(v_stmt)
+            dealloc_reg_tupple(r)
         ins = ins_e1
         lbl_start = gen_lbl()
         ins.append(lbl_start+':')
@@ -596,6 +621,8 @@ def parse_ast(ast):
 
         ins += insi + inse
 
+        if sp is not 'sp':
+            dealloc_reg(sp)
         return None, ins
 
     elif ast[0] == 'arrid':
@@ -625,6 +652,8 @@ def parse_ast(ast):
             ins.append('addi $'+v_ind+', $'+v_ind+','+str(stack))#add index of array
 
         ins.append('lw $'+v_ind+', ($'+v_ind+')')
+        if sp is not 'sp':
+            dealloc_reg(sp)
         return v_ind, ins
 
     elif ast[0] == 'ret':
@@ -755,6 +784,9 @@ def parse_ast(ast):
         ins.append('add $'+v_ind+', $'+sp+', $'+v_ind)#add stack pointer
         if not v_name in g_variables:
             ins.append('addi $'+v_ind+', $'+v_ind+','+str(stack))#add index of array
+
+        if sp is not 'sp':
+            dealloc_reg(sp)
 
         return v_ind, ins
 
