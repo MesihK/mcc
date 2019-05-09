@@ -871,6 +871,8 @@ def parse(ast, asm):
         for line in functions['main'][1]:
             ins.append(line)
         ins.append('')
+    else:
+        raise Exception('No main found!')
 
     for f in functions:
         if f == 'main': continue
